@@ -43,10 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonExtensionMethods.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="FileHelper.cs" />
     <Compile Include="LogHelper.cs" />
+    <Compile Include="Models\ChildData.cs" />
+    <Compile Include="Models\MembershipData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgressBar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
