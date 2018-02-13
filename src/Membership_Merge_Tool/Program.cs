@@ -1,5 +1,8 @@
 ﻿using Membership_Merge_Tool.Enumerations;
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 namespace Membership_Merge_Tool
 {
@@ -29,9 +32,11 @@ namespace Membership_Merge_Tool
 
         private static string ReadInputDataFromUpdateFiles(Config configData)
         {
-            Console.Write($"Reading Update Files ... ");
+            Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");
 
-            Console.WriteLine($"Config '{configData.GetValue(ConfigVariableName.FolderName_Updates)}'");
+            var currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var inputFolder = Path.Combine(currentDirectory, configData.FolderPath_Updates);
+            var inputFiles = Directory.GetFiles(inputFolder, "*.csv");
 
             return string.Empty;
             //new List<VsReleaseData>();
