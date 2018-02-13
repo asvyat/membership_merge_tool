@@ -1,6 +1,5 @@
 ﻿using Membership_Merge_Tool.Enumerations;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 
@@ -35,27 +34,32 @@ namespace Membership_Merge_Tool
             Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");
 
             Console.WriteLine($"Config '{configData.GetValue(ConfigVariableName.FolderName_Updates)}'");
-            var files
-            //using StreamReader as possible can get Out Of Memory Exception 
-            long i = 0;
-            using (var progress = new ProgressBar())
-            {
-                using (TextReader reader = new StreamReader(File.Open(localFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
-                {
-                    var line = string.Empty;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        returnList.Add(line.Split('\t'));
-                        progress.Report((double)i / countOfLinesInputFile);
-                        i++;
-                    }
-                }
-            }
-            Console.Write($"Done{Environment.NewLine}");
             var currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var inputFolder = Path.Combine(currentDirectory, configData.FolderPath_Updates);
             var inputFiles = Directory.GetFiles(inputFolder, "*.csv");
 
+            //using StreamReader as possible can get Out Of Memory Exception 
+            long i = 0;
+            using (var progress = new ProgressBar())
+            {
+                foreach (var inputFile in inputFiles)
+                {
+                    using (TextReader reader = new StreamReader(File.Open(inputFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                    {
+                        var line = string.Empty;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            var values = line.Split(',');
+                            //returnList.Add();
+                            //progress.Report((double)i / countOfLinesInputFile);
+                            i++;
+                        }
+                    }
+                }
+                
+            }
+            Console.Write($"Done{Environment.NewLine}");
+            
             return string.Empty;
             //new List<VsReleaseData>();
             //using (var progress = new ProgressBar())
