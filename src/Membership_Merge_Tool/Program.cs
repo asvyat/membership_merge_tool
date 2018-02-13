@@ -1,5 +1,6 @@
 ﻿using Membership_Merge_Tool.Enumerations;
 using System;
+using System.IO;
 
 namespace Membership_Merge_Tool
 {
@@ -32,6 +33,23 @@ namespace Membership_Merge_Tool
             Console.Write($"Reading Update Files ... ");
 
             Console.WriteLine($"Config '{configData.GetValue(ConfigVariableName.FolderName_Updates)}'");
+            var files
+            //using StreamReader as possible can get Out Of Memory Exception 
+            long i = 0;
+            using (var progress = new ProgressBar())
+            {
+                using (TextReader reader = new StreamReader(File.Open(localFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                {
+                    var line = string.Empty;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        returnList.Add(line.Split('\t'));
+                        progress.Report((double)i / countOfLinesInputFile);
+                        i++;
+                    }
+                }
+            }
+            Console.Write($"Done{Environment.NewLine}");
 
             return string.Empty;
             //new List<VsReleaseData>();
