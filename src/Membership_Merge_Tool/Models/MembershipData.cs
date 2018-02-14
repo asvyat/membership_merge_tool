@@ -30,22 +30,10 @@ namespace Membership_Merge_Tool.Models
         {
             FirstName   = values[0];
             LastName    = values[1];
-
-            DateTime inputDateOfBirth;
-            if (DateTime.TryParse(values[2], out inputDateOfBirth))
-            {
-                DateOfBirth = inputDateOfBirth;
-            }
-
+            DateOfBirth = ValueHelper.ParseStringToDateTime(values[2]);
             SpouseFirstName = values[3];
             SpouseLastName  = values[4];
-
-            DateTime inputSpouseDateOfBirth;
-            if (DateTime.TryParse(values[5], out inputSpouseDateOfBirth))
-            {
-                SpouseDateOfBirth = inputSpouseDateOfBirth;
-            }
-
+            SpouseDateOfBirth = ValueHelper.ParseStringToDateTime(values[5]);            
             Address     = values[6];
             City        = values[7];
             State       = values[8];
@@ -62,7 +50,7 @@ namespace Membership_Merge_Tool.Models
             SpouseEmail = values[13];
             CellPhone   = values[14];
             SpouseCellPhone = values[15];
-            IncludeInMailingList = string.IsNullOrWhiteSpace(values[16]) ? true : bool.Parse(values[16]);
+            IncludeInMailingList = ValueHelper.ParseStringToBool(values[16]);
 
             int inputEnvelopeNumber;
             if (int.TryParse(values[17], out inputEnvelopeNumber))
@@ -83,29 +71,14 @@ namespace Membership_Merge_Tool.Models
             var isNewChildStartColumn = true;
             var skipColumnCount = 0;
 
+            var maxNumberOfChildren = 5;
+            var maxColumnIndexWithChildrenData = startingIndex - 1 +
+                maxNumberOfChildren * 4;
+
             for (int i = 0; i < values.Length; i++)
             {
-                if (i >= startingIndex && isNewChildStartColumn && !string.IsNullOrWhiteSpace(values[i]))
-                {
-                    // Child data are set in 4 columns set
-                    var childData = new ChildData {
-                        ChildName = values[i],
-                        Baptized = bool.Parse(values[i+2]),
-                        FirstCommunionReceived= bool.Parse(values[i + 3]),
-                        };
-
-                    DateTime inputChildDateOfBirth;
-                    if (DateTime.TryParse(values[i+1], out inputChildDateOfBirth))
-                    {
-                        childData.DateOfBirth = inputChildDateOfBirth;
-                    }
-                    returnChildrenList.Add(childData);
-                    isNewChildStartColumn = false;
-                    skipColumnCount = 0;
-                }
-
                 // If found first child data, skip next 3 columns
-                // to read next child data
+                // to read next child data set
                 if (!isNewChildStartColumn)
                 {
                     if (skipColumnCount == 3)
@@ -115,10 +88,32 @@ namespace Membership_Merge_Tool.Models
                     else
                     {
                         skipColumnCount++;
-                    }                    
+                    }
+                }
+
+                // If first column with Child data found
+                if (i >= startingIndex && isNewChildStartColumn 
+                    && i <= maxColumnIndexWithChildrenData)
+                {
+                    var childName = values[i];
+                    if (!string.IsNullOrEmpty(childName))
+                    {
+                        // Child data are set in 4 columns set
+                        var childData = new ChildData
+                        {
+                            ChildName = childName,
+                            Baptized = ValueHelper.ParseStringToBool(values[i + 2]),
+                            FirstCommunionReceived = ValueHelper.ParseStringToBool(values[i + 3]),
+                        };
+
+                        childData.DateOfBirth = ValueHelper.ParseStringToDateTime(values[i + 1]);
+                        returnChildrenList.Add(childData);
+                    }
+                    
+                    isNewChildStartColumn = false;
+                    skipColumnCount = 0;
                 }
             }
-
             return returnChildrenList;
         }
     }
