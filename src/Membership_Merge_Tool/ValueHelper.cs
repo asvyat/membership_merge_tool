@@ -6,10 +6,25 @@ namespace Membership_Merge_Tool
 {
     public class ValueHelper
     {
+        public static bool IsHeaderString(string firstName, string lastName)
+        {
+            return firstName.Equals("first_name", StringComparison.InvariantCultureIgnoreCase)
+                && lastName.Equals("last_name", StringComparison.InvariantCultureIgnoreCase);
+        }
+
         public static bool ParseStringToBool(string input)
         {
-            return string.IsNullOrWhiteSpace(input) || input.ToLower() == "yes" ? true :
+            var returnBool = true;
+            try
+            {
+                returnBool = string.IsNullOrWhiteSpace(input) || input.ToLower() == "yes" ? true :
                 input.ToLower() == "no" ? false : bool.Parse(input);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Unable to parse to bool this input '{input}'", ex);
+            }
+            return returnBool;
         }
 
         public static DateTime? ParseStringToDateTime(string input)
@@ -25,13 +40,12 @@ namespace Membership_Merge_Tool
                 };
 
                 // Try a differeny method
-                // TODO
+                // TODO: add in case needed
                 if (returnDateTime == null)
                 {
 
                 }
-            }          
-
+            } 
             return returnDateTime;
         }
 
@@ -49,11 +63,17 @@ namespace Membership_Merge_Tool
             foreach (Match match in csvSplit.Matches(input))
             {
                 curr = match.Value;
+
+                if (curr.Contains("\""))
+                {
+                    curr = curr.Replace("\"", string.Empty);
+                }
+
                 if (0 == curr.Length)
                 {
                     list.Add("");
                 }
-                list.Add(curr.TrimStart(','));
+                list.Add(curr.TrimStart(',').Trim());
             }
             return list.ToArray();
         }

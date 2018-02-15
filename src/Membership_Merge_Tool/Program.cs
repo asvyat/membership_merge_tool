@@ -1,6 +1,9 @@
 ﻿using Membership_Merge_Tool.Enumerations;
+using Membership_Merge_Tool.Models;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Membership_Merge_Tool
@@ -29,17 +32,18 @@ namespace Membership_Merge_Tool
             }            
         }
 
-        private static string ReadInputDataFromUpdateFiles(Config configData)
+        private static List<MembershipData> ReadInputDataFromUpdateFiles(Config configData)
         {
+            var returnList = new List<MembershipData>();
             Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");
 
-            Console.WriteLine($"Config '{configData.GetValue(ConfigVariableName.FolderName_Updates)}'");
             var currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var inputFolder = Path.Combine(currentDirectory, configData.FolderPath_Updates);
             var inputFiles = Directory.GetFiles(inputFolder, "*.csv");
 
-            //using StreamReader as possible can get Out Of Memory Exception 
-            long i = 0;
+            // Use StreamReader as possible can get Out Of Memory Exception 
+            // during large file reading
+            //long i = 0;
             using (var progress = new ProgressBar())
             {
                 foreach (var inputFile in inputFiles)
@@ -49,18 +53,28 @@ namespace Membership_Merge_Tool
                         var line = string.Empty;
                         while ((line = reader.ReadLine()) != null)
                         {
-                            var values = line.Split(',');
-                            //returnList.Add();
-                            //progress.Report((double)i / countOfLinesInputFile);
-                            i++;
+                            var membershipData = ClassInstanceFactory.GetMembershipData(line);
+
+                            // Add only items to a list that are new or 
+                            // list contains the same Key elements with lower UpdateDate
+                            if (returnList.Count > 0
+                                && returnList
+                                .Any(i => i.FirstName.Equals(membershipData.FirstName, StringComparison.InvariantCultureIgnoreCase)
+                                    && i.LastName.Equals(membershipData.LastName, StringComparison.InvariantCultureIgnoreCase)
+                                    && i.Email.Equals(membershipData.Email, StringComparison.InvariantCultureIgnoreCase)
+                                    && i.UpdateDate < membershipData.UpdateDate))
+                            {
+                                returnList.Add(membershipData);
+                            }                           
                         }
                     }
-                }
-                
+                }                
             }
+
             Console.Write($"Done{Environment.NewLine}");
-            
-            return string.Empty;
+            Console.WriteLine($"Found {returnList.Count} new records");
+
+            return returnList;
             //new List<VsReleaseData>();
             //using (var progress = new ProgressBar())
             //{

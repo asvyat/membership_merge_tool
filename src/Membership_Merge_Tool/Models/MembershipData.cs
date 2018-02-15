@@ -22,12 +22,13 @@ namespace Membership_Merge_Tool.Models
         public string CellPhone { get; set; }
         public string SpouseCellPhone { get; set; }
         public bool IncludeInMailingList { get; set; }
-        public int EnvelopeNumber { get; set; }
-        
+        public int EnvelopeNumber { get; set; }        
         public List<ChildData> Children { get; set; }
+        public DateTime? UpdateDate { get; set; }
 
         public MembershipData(string[] values)
         {
+            // Add all the fields
             FirstName   = values[0];
             LastName    = values[1];
             DateOfBirth = ValueHelper.ParseStringToDateTime(values[2]);
@@ -59,6 +60,7 @@ namespace Membership_Merge_Tool.Models
             }
 
             Children = ParseChildrenData(values, 18);
+            UpdateDate = ValueHelper.ParseStringToDateTime(values[40]);
         }
 
         /// <summary>

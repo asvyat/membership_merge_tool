@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClassInstanceFactory.cs" />
     <Compile Include="CommonExtensionMethods.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="Enumerations.cs" />
