@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 
 namespace Membership_Merge_Tool
 {
@@ -20,7 +19,7 @@ namespace Membership_Merge_Tool
                 var inputDataList = ReadInputDataFromUpdateFiles(configData);
 
                 // Merge new input data into Master file
-                MergeInputDataIntoMasterExcelFile(inputDataList, configData);
+                MergeInputDataIntoMasterExcelFile(configData.FilePath_MasterExcelFile, inputDataList);
 
                 // Move input files into Completed folder
                 MoveInputFilesIntoCompletedFolder(configData);
@@ -56,11 +55,13 @@ namespace Membership_Merge_Tool
             Console.WriteLine($"Done{Environment.NewLine}");
         }
 
-        private static void MergeInputDataIntoMasterExcelFile(List<MembershipData> inputDataList, Config configData)
+        private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipData> inputDataList)
         {
-            // Open Excel file
-
-            // Update from input list
+            if (inputDataList.Any())
+            {
+                Console.Write($"Updating Excel Master File '{masterFile}' ... ");
+                ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataList);
+            }            
         }
 
         private static List<MembershipData> ReadInputDataFromUpdateFiles(Config configData)
@@ -89,15 +90,6 @@ namespace Membership_Merge_Tool
             Console.WriteLine($"Found {returnList.Count} new records");
 
             return returnList;
-            //new List<VsReleaseData>();
-            //using (var progress = new ProgressBar())
-            //{
-            //    vsReleasesFromCosmos = cosmosFileModifier.ReadTabDelimitedFileConvertToVsReleaseData(vsReleasesTSVFile);
-            //    vsReleasesFromCosmos.Sort((x, y) => x.ChannelManifestId.CompareTo(y.ChannelManifestId));
-            //}
-            //Console.Write($"Done{Environment.NewLine}");
-            //Console.WriteLine($"Found {vsReleasesFromCosmos.Count} records {Environment.NewLine}");
-
         }
     }
 }
