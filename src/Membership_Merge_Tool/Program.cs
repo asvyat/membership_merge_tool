@@ -53,19 +53,8 @@ namespace Membership_Merge_Tool
                         var line = string.Empty;
                         while ((line = reader.ReadLine()) != null)
                         {
-                            var membershipData = ClassInstanceFactory.GetMembershipData(line);
-
-                            // Add only items to a list that are new or 
-                            // list contains the same Key elements with lower UpdateDate
-                            if (returnList.Count > 0
-                                && returnList
-                                .Any(i => i.FirstName.Equals(membershipData.FirstName, StringComparison.InvariantCultureIgnoreCase)
-                                    && i.LastName.Equals(membershipData.LastName, StringComparison.InvariantCultureIgnoreCase)
-                                    && i.Email.Equals(membershipData.Email, StringComparison.InvariantCultureIgnoreCase)
-                                    && i.UpdateDate < membershipData.UpdateDate))
-                            {
-                                returnList.Add(membershipData);
-                            }                           
+                            var membershipData = MembershipHelper.GetMembershipData(line);
+                            MembershipHelper.AddOnlyLatestMembershipData(returnList, membershipData);
                         }
                     }
                 }                

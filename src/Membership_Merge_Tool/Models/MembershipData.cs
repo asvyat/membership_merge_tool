@@ -26,6 +26,8 @@ namespace Membership_Merge_Tool.Models
         public List<ChildData> Children { get; set; }
         public DateTime? UpdateDate { get; set; }
 
+        public MembershipData() {}
+
         public MembershipData(string[] values)
         {
             // Add all the fields

@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Membership_Merge_ToolTests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft Corporation")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Membership_Merge_ToolTests")]
-[assembly: AssemblyCopyright("Copyright © Microsoft Corporation 2018")]
+[assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("29ea22cb-2b81-468d-95fe-678edd1c0d19")]
+[assembly: Guid("1ccf1867-991f-4e05-bb05-a37997ea3c12")]
 
 // Version information for an assembly consists of the following four values:
 //
