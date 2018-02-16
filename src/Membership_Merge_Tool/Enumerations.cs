@@ -7,7 +7,8 @@
     {
         FolderName_Updates,
         FolderName_Completed,
-        RootFolder
-
+        RootFolder,
+        UpdateFileNamePattern,
+        MasterExcelFileName
     }
 }

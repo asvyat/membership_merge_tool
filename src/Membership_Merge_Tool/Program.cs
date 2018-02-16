@@ -17,11 +17,13 @@ namespace Membership_Merge_Tool
                 var configData = new Config();
 
                 // Collect new input data from Update Files
-                var inputData = ReadInputDataFromUpdateFiles(configData);
+                var inputDataList = ReadInputDataFromUpdateFiles(configData);
 
                 // Merge new input data into Master file
+                MergeInputDataIntoMasterExcelFile(inputDataList, configData);
 
                 // Move input files into Completed folder
+                MoveInputFilesIntoCompletedFolder(configData);
 
                 // Report result back
 
@@ -32,18 +34,41 @@ namespace Membership_Merge_Tool
             }            
         }
 
+        private static void MoveInputFilesIntoCompletedFolder(Config configData)
+        {
+            var inputFiles = Directory.GetFiles(configData.FolderPath_Updates, configData.ConfigEntries[ConfigVariableName.UpdateFileNamePattern]);
+            if (!inputFiles.Any())
+            {
+                return;
+            }
+
+            Console.WriteLine($"Moving Input Update Files into '{configData.FolderPath_Completed}'.");
+            if (!Directory.Exists(configData.FolderPath_Completed))
+            {
+                Directory.CreateDirectory(configData.FolderPath_Completed);
+            }
+
+            foreach (var inputFilePath in inputFiles)
+            {
+                var fileName = Path.GetFileName(inputFilePath);
+                File.Move(inputFilePath, Path.Combine(configData.FolderPath_Completed, fileName));
+            }
+            Console.WriteLine($"Done{Environment.NewLine}");
+        }
+
+        private static void MergeInputDataIntoMasterExcelFile(List<MembershipData> inputDataList, Config configData)
+        {
+            // Open Excel file
+
+            // Update from input list
+        }
+
         private static List<MembershipData> ReadInputDataFromUpdateFiles(Config configData)
         {
             var returnList = new List<MembershipData>();
-            Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");
+            Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");                        
+            var inputFiles = Directory.GetFiles(configData.FolderPath_Updates, configData.ConfigEntries[ConfigVariableName.UpdateFileNamePattern]);
 
-            var currentDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            var inputFolder = Path.Combine(currentDirectory, configData.FolderPath_Updates);
-            var inputFiles = Directory.GetFiles(inputFolder, "*.csv");
-
-            // Use StreamReader as possible can get Out Of Memory Exception 
-            // during large file reading
-            //long i = 0;
             using (var progress = new ProgressBar())
             {
                 foreach (var inputFile in inputFiles)

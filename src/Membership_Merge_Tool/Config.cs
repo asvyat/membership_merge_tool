@@ -20,6 +20,13 @@ namespace Membership_Merge_Tool
                 return $"{GetValue(ConfigVariableName.RootFolder)}\\{GetValue(ConfigVariableName.FolderName_Updates)}";
             }
         }
+        public string FilePath_MasterExcelFile
+        {
+            get
+            {
+                return $"{GetValue(ConfigVariableName.RootFolder)}\\{GetValue(ConfigVariableName.MasterExcelFileName)}";
+            }
+        }
 
         public Dictionary<ConfigVariableName, string> ConfigEntries { get; set; }
 

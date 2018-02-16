@@ -34,5 +34,17 @@ namespace Membership_Merge_Tool.Tests
             Assert.AreEqual(1, testList.Count);
             Assert.AreEqual("oldAddress", testList.FirstOrDefault().Address);
         }
+
+        [TestMethod()]
+        public void AddOnlyLatestMembershipData_SameRecordsOnlyOneStays_Success_Test()
+        {
+            var testRecord1 = new MembershipData { FirstName = "testFirstName", LastName = "testLastName", Email = "testEmail", Address = "oldAddress", UpdateDate = DateTime.Parse("02/15/18 10:00") };
+            var testRecord2 = new MembershipData { FirstName = "testFirstName", LastName = "testLastName", Email = "testEmail", Address = "oldAddress", UpdateDate = DateTime.Parse("02/15/18 10:00") };
+            var testList = new List<MembershipData> { testRecord1 };
+
+            MembershipHelper.AddOnlyLatestMembershipData(testList, testRecord2);
+
+            Assert.AreEqual(1, testList.Count);
+        }
     }
 }
