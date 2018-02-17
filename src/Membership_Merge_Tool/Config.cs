@@ -6,7 +6,7 @@ using System.Configuration;
 namespace Membership_Merge_Tool
 {
     public class Config
-    {
+    {        
         public string FolderPath_Completed {
             get
             {

@@ -1,30 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 
 namespace Membership_Merge_Tool.Models
 {
     public class MembershipData
     {
+        const string MembershipDataDescriptionCategory = "ExcelFileColumnName";
+
+        [Description("First"), Category(MembershipDataDescriptionCategory)]
         public string FirstName { get; set; }
+
+        [Description("Last"), Category(MembershipDataDescriptionCategory)]
         public string LastName { get; set; }
+
+        [Description("DOB"), Category(MembershipDataDescriptionCategory)]
         public DateTime? DateOfBirth { get; set; }
+
+        [Description("Spouse First"), Category(MembershipDataDescriptionCategory)]
         public string SpouseFirstName { get; set; }
+
         public string SpouseLastName { get; set; }
+
         public DateTime? SpouseDateOfBirth { get; set; }
+
         public string Address { get; set; }
+
         public string City { get; set; }
-        public string State { get; set; }        
+
+        public string State { get; set; }
+
         public int? Zip { get; set; }
+
         public string Country { get; set; }
+
         public string Phone { get; set; }
+
         public string Email { get; set; }
+
         public string CellPhone { get; set; }
-        public string SpouseEmail { get; set; }        
+
+        public string SpouseEmail { get; set; }
+
         public string SpouseCellPhone { get; set; }
+
         public string Pager { get; set; }   // TODO : add into a web sit form as well
+
         public bool IncludeInMailingList { get; set; }
-        public int EnvelopeNumber { get; set; }        
+
+        public int EnvelopeNumber { get; set; }
+
         public List<ChildData> Children { get; set; }
+
         public DateTime? UpdateDate { get; set; }
 
         public MembershipData() {}
@@ -65,7 +93,7 @@ namespace Membership_Merge_Tool.Models
             Children = ParseChildrenData(values, 18);
             UpdateDate = ValueHelper.ParseStringToDateTime(values[40]);
         }
-
+        
         /// <summary>
         /// Parse last elements of the values from starting Index position
         /// </summary>

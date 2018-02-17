@@ -1,4 +1,6 @@
-﻿namespace Membership_Merge_Tool.Enumerations
+﻿using System.ComponentModel;
+
+namespace Membership_Merge_Tool.Enumerations
 {
     /// <summary>
     /// Configuration variable names stored in App.config
@@ -10,5 +12,5 @@
         RootFolder,
         UpdateFileNamePattern,
         MasterExcelFileName
-    }
+    }        
 }
