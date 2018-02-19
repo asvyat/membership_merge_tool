@@ -7,18 +7,19 @@ namespace Membership_Merge_Tool.Models
 {
     public class MembershipData
     {
-        const string MembershipDataDescriptionCategory = "ExcelFileColumnName";
+        //const string MembershipDataDescriptionCategory = "ExcelFileColumnName";
 
-        [Description("First"), Category(MembershipDataDescriptionCategory)]
+        //[Description("First"), Category(MembershipDataDescriptionCategory)]
+        [Description("First")]
         public string FirstName { get; set; }
 
-        [Description("Last"), Category(MembershipDataDescriptionCategory)]
+        //[Description("Last"), Category(MembershipDataDescriptionCategory)]
         public string LastName { get; set; }
 
-        [Description("DOB"), Category(MembershipDataDescriptionCategory)]
+        //[Description("DOB"), Category(MembershipDataDescriptionCategory)]
         public DateTime? DateOfBirth { get; set; }
 
-        [Description("Spouse First"), Category(MembershipDataDescriptionCategory)]
+        //[Description("Spouse First"), Category(MembershipDataDescriptionCategory)]
         public string SpouseFirstName { get; set; }
 
         public string SpouseLastName { get; set; }

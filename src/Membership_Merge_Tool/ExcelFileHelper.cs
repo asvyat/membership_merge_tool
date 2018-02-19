@@ -14,14 +14,8 @@ namespace Membership_Merge_Tool
         /// Merge or update input data into Excel File
         /// </summary>
         public static void MergeInputDataIntoExcelFile(string excelFileName, List<MembershipData> inputDataList)
-        {
-            var t = inputDataList.FirstOrDefault();
-            var desc = ValueHelper.GetDescription(() => t.FirstName);
-
-            // For each MembershipData data property we need to map 
-            // to the actual Header column name in Excel file
-            // for example: MembershipData.FirstName => ExcelFileHeaderRow.First_Name
-            var headerMappingOfColumnNames = new Dictionary<string, string>();
+        {            
+            var headerMappingOfColumnNames = new List<MembershipColumnMapper>();
 
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(excelFileName, true))
             {
@@ -32,20 +26,16 @@ namespace Membership_Merge_Tool
                 var firstSheetPart = (WorksheetPart)document.WorkbookPart.GetPartById(firstSheetId);
                 var firstWorksheet = firstSheetPart.Worksheet;
                 var isHeader = true;
-
-                //var rows = from row in firstWorksheet.Descendants<Row>()
-                //    where row.RowIndex > 1
-                //    select row;
-
+                               
                 foreach (Row row in firstWorksheet.Descendants<Row>())
                 {
                     if (isHeader)
                     {
-                        headerMappingOfColumnNames = GetColumnMappingFromHeaderRow(sharedStrings, row);                        
+                        headerMappingOfColumnNames = GetMembershipColumnMapper(sharedStrings, row, inputDataList.FirstOrDefault());                        
                     }
                     else
                     {
-                        UpdateWorksheetRowFromMembershipData(row, inputDataList);
+                        UpdateWorksheetRowFromMembershipData(headerMappingOfColumnNames, row, inputDataList);
                     }
                     isHeader = false;
                             // select non-empty values
@@ -77,31 +67,50 @@ namespace Membership_Merge_Tool
             }   
         }
 
-        private static void UpdateWorksheetRowFromMembershipData(Row row, List<MembershipData> inputDataList)
+        private static void UpdateWorksheetRowFromMembershipData(List<MembershipColumnMapper>headerMappingOfColumnNames, Row row, List<MembershipData> inputDataList)
         {
             throw new NotImplementedException();
         }
 
-        private static Dictionary<string, string> GetColumnMappingFromHeaderRow(SharedStringTable sharedStrings, Row row)
+        private static List<MembershipColumnMapper> GetMembershipColumnMapper(SharedStringTable sharedStrings, Row row, MembershipData membershipData)
         {
+            var returnList = new List<MembershipColumnMapper>();
 
-            var returnDictionary = new Dictionary<string, string>();
+            // First get all the properties from MembershipData
+            //using reflection to create a list of existing Doc properties and their values
+            var allMembershipProperties = membershipData.GetType().GetProperties().ToList();
+            foreach (var membershipProperty in allMembershipProperties)
+            {
+                //var desc = ValueHelper.GetDescription(() => membershipProperty);
+                var descriptionAttribute = (DescriptionAttribute)membershipProperty.GetCustomAttributes(false).FirstOrDefault();
 
+                var membershipColumnMapper = new MembershipColumnMapper { MembershipDataPropertyName = membershipProperty.Name };
+                if (descriptionAttribute != null && !string.IsNullOrWhiteSpace(descriptionAttribute.Description))
+                {
+                    membershipColumnMapper.ExcelFileColumnName = descriptionAttribute.Description;
+                }
+                returnList.Add(membershipColumnMapper);
+            }
+
+            // Next will match to a column name from the header row
             foreach (Cell cell in row.Descendants<Cell>())
             {
-                string cellVal;
-                string col;
-                GetCellValueAndColumn(sharedStrings, row, cell, out cellVal, out col);
+                string columnName;
+                string collumnIndex;
+                GetCellValueAndColumn(sharedStrings, row, cell, out columnName, out collumnIndex);
 
-                //if (cellVal.Equals(this.stateInformation.Schema.ColumnNameOfCLCID))
-                //{
-                //    clcidCol = col;
-                //}
+                var toUpdate = returnList
+                    .SingleOrDefault(i => i.ExcelFileColumnName.Equals(columnName, StringComparison.InvariantCultureIgnoreCase));
+                               
+                if (toUpdate != null)
+                {
+                    toUpdate.ExcelFileColumnIndex = collumnIndex;
+                }
             }
-            return returnDictionary;
+            return returnList;
         }
 
-        public static void GetCellValueAndColumn(SharedStringTable sharedStrings, Row row, Cell cell, out string cellValue, out string collumn)
+        public static void GetCellValueAndColumn(SharedStringTable sharedStrings, Row row, Cell cell, out string cellValue, out string collumnIndex)
         {
             cellValue = string.Empty;
             if (cell.CellValue != null)
@@ -114,7 +123,7 @@ namespace Membership_Merge_Tool
             }
 
             string celRef = cell.CellReference.Value;
-            collumn = celRef.Substring(0, celRef.IndexOf(row.RowIndex.ToString()));
+            collumnIndex = celRef.Substring(0, celRef.IndexOf(row.RowIndex.ToString()));
         }
     }
 }

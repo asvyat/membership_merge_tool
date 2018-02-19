@@ -117,6 +117,7 @@
     <Compile Include="LogHelper.cs" />
     <Compile Include="MembershipHelper.cs" />
     <Compile Include="Models\ChildData.cs" />
+    <Compile Include="Models\MembershipColumnMapper.cs" />
     <Compile Include="Models\MembershipData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgressBar.cs" />
