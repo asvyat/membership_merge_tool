@@ -21,7 +21,7 @@ namespace Membership_Merge_Tool
             if (string.IsNullOrEmpty(firstName)
                 && string.IsNullOrEmpty(lastName)
                 && string.IsNullOrEmpty(email)
-                || ValueHelper.IsHeaderString(firstName, lastName))
+                || ValueHelper.IsCsvInputHeaderString(firstName, lastName))
             {
                 return null;
             }

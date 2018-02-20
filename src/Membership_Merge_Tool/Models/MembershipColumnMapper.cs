@@ -13,5 +13,7 @@
         public string ExcelFileColumnName { get; set; } = string.Empty;
 
         public string ExcelFileColumnIndex { get; set; } = string.Empty;
+
+        public string ExcelCellOldValue { get; set; } = string.Empty;
     }
 }

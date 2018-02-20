@@ -1,33 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 namespace Membership_Merge_Tool
 {
     public class ValueHelper
-    {
+    {        
         /// <summary>
-        /// Get Class Property Description attribute value
-        /// For example:
-        /// Foo foo = new Foo();
-        /// Console.WriteLine(GetDescription(() => foo.property1 )
+        /// If this is a Header string from CSV Input file
         /// </summary>
-        public static string GetDescription<T>(Expression<Func<T>> expr)
-        {
-            var mexpr = expr.Body as MemberExpression;
-            if (mexpr == null) return null;
-            if (mexpr.Member == null) return null;
-            object[] attrs = mexpr.Member.GetCustomAttributes(typeof(DescriptionAttribute), false);
-            if (attrs == null || attrs.Length == 0) return null;
-            DescriptionAttribute desc = attrs[0] as DescriptionAttribute;
-            if (desc == null) return null;
-            return desc.Description;
-        }
-
-
-        public static bool IsHeaderString(string firstName, string lastName)
+        public static bool IsCsvInputHeaderString(string firstName, string lastName)
         {
             return firstName.Equals("first_name", StringComparison.InvariantCultureIgnoreCase)
                 && lastName.Equals("last_name", StringComparison.InvariantCultureIgnoreCase);

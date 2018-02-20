@@ -1,29 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 
 namespace Membership_Merge_Tool.Models
 {
+    /// <summary>
+    /// Membership Data Class to store data extracted from CSV input files
+    /// And later to update into Excel Master File
+    /// Value in the Description Attribute should match the desired column name in Excel file
+    /// If poperty doesn't have a Description Attribute, the actual property name will be used for column name in Excel
+    /// </summary>
     public class MembershipData
-    {
-        //const string MembershipDataDescriptionCategory = "ExcelFileColumnName";
-
-        //[Description("First"), Category(MembershipDataDescriptionCategory)]
+    { 
         [Description("First")]
         public string FirstName { get; set; }
 
-        //[Description("Last"), Category(MembershipDataDescriptionCategory)]
+        [Description("Last")]
         public string LastName { get; set; }
 
-        //[Description("DOB"), Category(MembershipDataDescriptionCategory)]
+        [Description("DOB")]
         public DateTime? DateOfBirth { get; set; }
 
-        //[Description("Spouse First"), Category(MembershipDataDescriptionCategory)]
+        [Description("Spouse First")]
         public string SpouseFirstName { get; set; }
 
+        [Description("Spouse Last")]
         public string SpouseLastName { get; set; }
 
+        [Description("Spouse DOB")]
         public DateTime? SpouseDateOfBirth { get; set; }
 
         public string Address { get; set; }
@@ -40,22 +44,30 @@ namespace Membership_Merge_Tool.Models
 
         public string Email { get; set; }
 
+        [Description("Cell")]
         public string CellPhone { get; set; }
 
+        [Description("Spouse Email")]
         public string SpouseEmail { get; set; }
 
+        [Description("Spouse Cell")]
         public string SpouseCellPhone { get; set; }
 
-        public string Pager { get; set; }   // TODO : add into a web sit form as well
+        public string Pager { get; set; }
 
+        [Description("Bulletin e-mail")]
         public bool IncludeInMailingList { get; set; }
 
         public int EnvelopeNumber { get; set; }
 
         public List<ChildData> Children { get; set; }
 
+        [Description("Update Date")]
         public DateTime? UpdateDate { get; set; }
 
+        /// <summary>
+        /// Default c-tor
+        /// </summary>
         public MembershipData() {}
 
         public MembershipData(string[] values)
@@ -149,6 +161,14 @@ namespace Membership_Merge_Tool.Models
                 }
             }
             return returnChildrenList;
+        }
+        
+        /// <summary>
+        /// Using reflection method return class property value by name
+        /// </summary>
+        internal string GetPropertyValue(MembershipColumnMapper membershipColumnMapper)
+        {
+            throw new NotImplementedException();
         }
     }
 }

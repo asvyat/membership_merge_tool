@@ -41,7 +41,7 @@ namespace Membership_Merge_Tool
                 return;
             }
 
-            Console.WriteLine($"Moving Input Update Files into '{configData.FolderPath_Completed}'.");
+            Console.Write($"Moving Input Update Files into '{configData.FolderPath_Completed}' ... ");
             if (!Directory.Exists(configData.FolderPath_Completed))
             {
                 Directory.CreateDirectory(configData.FolderPath_Completed);
@@ -52,7 +52,7 @@ namespace Membership_Merge_Tool
                 var fileName = Path.GetFileName(inputFilePath);
                 File.Move(inputFilePath, Path.Combine(configData.FolderPath_Completed, fileName));
             }
-            Console.WriteLine($"Done{Environment.NewLine}");
+            Console.Write($"Done{Environment.NewLine}");
         }
 
         private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipData> inputDataList)
@@ -60,7 +60,9 @@ namespace Membership_Merge_Tool
             if (inputDataList.Any())
             {
                 Console.Write($"Updating Excel Master File '{masterFile}' ... ");
-                ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataList);
+                var updatedRows = ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataList);
+                Console.Write($"Done{Environment.NewLine}");
+                Console.WriteLine($"Updated {updatedRows} rows");
             }            
         }
 
@@ -85,7 +87,6 @@ namespace Membership_Merge_Tool
                     }
                 }                
             }
-
             Console.Write($"Done{Environment.NewLine}");
             Console.WriteLine($"Found {returnList.Count} new records");
 
