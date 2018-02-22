@@ -13,10 +13,10 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Merge or update input data into Excel File
         /// </summary>
-        public static int MergeInputDataIntoExcelFile(string excelFileName, List<MembershipData> inputDataList)
+        public static int MergeInputDataIntoExcelFile(string excelFileName, List<MembershipDataRow> inputDataList)
         {
             int updatedRows = 0;
-            var headerMappingOfColumnNames = new List<MembershipColumnMapper>();
+            var headerMappingOfColumnNames = new List<MembershipDataCellMapper>();
 
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(excelFileName, true))
             {
@@ -53,7 +53,7 @@ namespace Membership_Merge_Tool
             return updatedRows;
         }
 
-        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, List<MembershipColumnMapper> columnMapperList, Row row, List<MembershipData> inputDataList)
+        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, List<MembershipDataCellMapper> columnMapperList, Row row, List<MembershipData> inputDataList)
         {
             int updatedRows = 0;
             var cellValue = string.Empty;
@@ -61,7 +61,7 @@ namespace Membership_Merge_Tool
             var rowIndex = row.RowIndex.ToString();
             try
             {
-                var currentCellMapping = new List<MembershipColumnMapper>();
+                var currentCellMapping = new List<MembershipDataCellMapper>();
 
                 // First collecting current old data for each cell for update
                 foreach (var cell in row.Descendants<Cell>())
@@ -72,7 +72,7 @@ namespace Membership_Merge_Tool
                     // If there's any mapping record for this specific cell column
                     var mapping = columnMapperList.Where(m => m.ExcelFileColumnIndex == collumnIndex).FirstOrDefault();
                     mapping = mapping == null
-                        ? new MembershipColumnMapper()
+                        ? new MembershipDataCellMapper()
                         : mapping;
                     mapping.ExcelCellOldValue = cellValue;
                     currentCellMapping.Add(mapping);
@@ -95,7 +95,7 @@ namespace Membership_Merge_Tool
             return updatedRows;
         }
 
-        private static bool TryGetUpdatedRow(SharedStringTable sharedStrings, Row oldRow, List<MembershipColumnMapper> currentCellMapping, List<MembershipData> inputDataList, out Row newRow)
+        private static bool TryGetUpdatedRow(SharedStringTable sharedStrings, Row oldRow, List<MembershipDataCellMapper> currentCellMapping, List<MembershipData> inputDataList, out Row newRow)
         {
             var oldKeyCell = currentCellMapping
                 .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnIndex)) // with File Index Column
@@ -155,9 +155,9 @@ namespace Membership_Merge_Tool
             return returnCell;
         }
 
-        private static List<MembershipColumnMapper> GetMembershipColumnMapper(SharedStringTable sharedStrings, Row row, MembershipData membershipData)
+        private static List<MembershipDataCellMapper> GetMembershipColumnMapper(SharedStringTable sharedStrings, Row row, MembershipData membershipData)
         {
-            var returnList = new List<MembershipColumnMapper>();
+            var returnList = new List<MembershipDataCellMapper>();
 
             // Firstly get all the properties from MembershipData except Children List
             // using reflection to create a list of existing Doc properties and their values
@@ -166,7 +166,7 @@ namespace Membership_Merge_Tool
             {                
                 var descriptionAttribute = (DescriptionAttribute)membershipProperty.GetCustomAttributes(false).FirstOrDefault();
 
-                var membershipColumnMapper = new MembershipColumnMapper { MembershipDataPropertyName = membershipProperty.Name };
+                var membershipColumnMapper = new MembershipDataCellMapper { MembershipDataPropertyName = membershipProperty.Name };
                 if (descriptionAttribute != null && !string.IsNullOrWhiteSpace(descriptionAttribute.Description))
                 {
                     membershipColumnMapper.ExcelFileColumnName = descriptionAttribute.Description;
@@ -189,7 +189,7 @@ namespace Membership_Merge_Tool
                     var descriptionAttribute = (DescriptionAttribute)childProperty.GetCustomAttributes(false).FirstOrDefault();
                     var childDescription = descriptionAttribute.Description.Replace("#", childIndex.ToString());
 
-                    var membershipColumnMapper = new MembershipColumnMapper
+                    var membershipColumnMapper = new MembershipDataCellMapper
                         { MembershipDataPropertyName = childProperty.Name, ExcelFileColumnName = childDescription };
 
                     returnList.Add(membershipColumnMapper);

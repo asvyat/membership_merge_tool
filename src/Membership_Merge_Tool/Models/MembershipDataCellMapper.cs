@@ -1,4 +1,7 @@
-﻿namespace Membership_Merge_Tool.Models
+﻿using System;
+using Membership_Merge_Tool.Enumerations;
+
+namespace Membership_Merge_Tool.Models
 {
     /// <summary>
     /// For each MembershipData data property we need to map 
@@ -6,14 +9,13 @@
     /// for example: MembershipData.FirstName map to ExcelFileHeaderRow.First_Name and Column Index
     /// This class will hold this mapping for each property of the MembershipData class
     /// </summary>
-    public class MembershipColumnMapper
+    public class MembershipDataCellMapper
     {
-        public string MembershipDataPropertyName { get; set; } = string.Empty;
+        public MembershipDataProperty MembershipDataPropertyName { get; set; }
 
         public string ExcelFileColumnName { get; set; } = string.Empty;
-
         public string ExcelFileColumnIndex { get; set; } = string.Empty;
-
         public string ExcelCellOldValue { get; set; } = string.Empty;
+        public string CsvNewValue { get; set; } = string.Empty;        
     }
 }
