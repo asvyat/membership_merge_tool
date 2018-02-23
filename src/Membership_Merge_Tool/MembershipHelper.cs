@@ -11,7 +11,7 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Get Membership data object from CSV input string
         /// </summary>
-        public static MembershipDataRow GetMembershipData(string csvString)
+        public static MembershipDataRow GetMembershipDataRow(string csvString)
         {
             var values = ValueHelper.SplitCSV(csvString);
 
@@ -33,62 +33,75 @@ namespace Membership_Merge_Tool
         /// Add only latest Membership Data object into input list
         /// For example if there are several input files older and newer, will keep newer data
         /// </summary>
-        public static void AddOnlyLatestMembershipData(List<MembershipDataRow> inputList, MembershipDataRow membershipDataRow)
+        public static void AddOnlyLatestMembershipData(List<MembershipDataRow> inputList, MembershipDataRow potentiallyNewerMembershipDataRow)
         {
-            if (membershipDataRow == null)
+            if (potentiallyNewerMembershipDataRow == null)
             {
                 return;
             }
+            // Get all the same rows with First and Last Names and email
             var existingRecordsInList = inputList
-                .Where(i => i.GetCsvNewValuesForDataProperty(MembershipDataProperty.FirstName)
-                    .Any(s => s
-                        .Equals(membershipDataRow
-                            .GetCsvNewValuesForDataProperty(MembershipDataProperty.FirstName)
-                                .FirstOrDefault(), StringComparison.InvariantCultureIgnoreCase)));
-            var i =0;
-                    //.Where(c => c.GetCsvNewValue(MembershipDataProperty.FirstName)
-                    //.Equals(membershipDataRow.FirstName, StringComparison.InvariantCultureIgnoreCase)
-                    //&& i.LastName.Equals(membershipDataRow.LastName, StringComparison.InvariantCultureIgnoreCase)
-                    //&& i.Email.Equals(membershipDataRow.Email, StringComparison.InvariantCultureIgnoreCase));
+                .Where(i => SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.FirstName)
+                && SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.LastName)
+                && SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.Email));
 
-            //var existingRecordsInList = inputList.Where(i => i.MembershipDataCellList.Where(c => c.MembershipDataPropertyName == Enumerations.MembershipDataProperty.FirstName).Equals(membershipData.FirstName, StringComparison.InvariantCultureIgnoreCase)
-            //        && i.LastName.Equals(membershipData.LastName, StringComparison.InvariantCultureIgnoreCase)
-            //        && i.Email.Equals(membershipData.Email, StringComparison.InvariantCultureIgnoreCase));
+            // If matching rows found continue checking on UpdateDate
+            if (existingRecordsInList != null && existingRecordsInList.Any())
+            {
+                // If Update date matches on both rows, nothing to add
+                var sameRecord = existingRecordsInList
+                    .Where(i => SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.UpdateDate))
+                    .FirstOrDefault();
 
-            //if (existingRecordsInList != null && existingRecordsInList.Any())
-            //{
-            //    var sameRecord = existingRecordsInList
-            //        .Where(i => i.UpdateDate == membershipData.UpdateDate).FirstOrDefault();
+                if (sameRecord != null)
+                {
+                    return;
+                }
 
-            //    if (sameRecord != null)
-            //    {
-            //        return;
-            //    }
+                var oldRecord = existingRecordsInList
+                    .Where(i => DatePropertyValueGreaterInFirstRow(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.UpdateDate))
+                    .FirstOrDefault();
 
-            //    var oldRecord = existingRecordsInList
-            //        .Where(i => i.UpdateDate < membershipData.UpdateDate).FirstOrDefault();
+                var newRecord = existingRecordsInList
+                    .Where(i => DatePropertyValueGreaterInFirstRow(potentiallyNewerMembershipDataRow, i, MembershipDataProperty.UpdateDate))
+                    .FirstOrDefault();
 
-            //    var newRecord = existingRecordsInList
-            //        .Where(i => i.UpdateDate > membershipData.UpdateDate).FirstOrDefault();
+                // If newer and older records exist, something is not right here
+                if (oldRecord != null && newRecord != null)
+                {
+                    throw new InvalidOperationException("Found newer and older records in Membership List! " +
+                        $"For First Name '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.FirstName).FirstOrDefault()}', "+
+                        $"Last Name '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.LastName).FirstOrDefault()}', "+
+                        $"Email '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.Email).FirstOrDefault()}'");
+                }
+                // Removes old record first
+                if (oldRecord != null)
+                {
+                    inputList.Remove(oldRecord);
+                }
+                // If newer record exist in the list, exit
+                if (newRecord != null)
+                {
+                    return;
+                }
+            }
+            inputList.Add(potentiallyNewerMembershipDataRow);
+        }
 
-            //    // If newer and older records exist, something is not right here
-            //    if (oldRecord != null && newRecord != null)
-            //    {
-            //        throw new InvalidOperationException("Found newer and older records in Membership List! " +
-            //            $"For First Name '{newRecord.FirstName}', Last Name '{newRecord.LastName}', Email '{newRecord.Email}'");
-            //    }
-            //    // Removes old record first
-            //    if (oldRecord != null)
-            //    {
-            //        inputList.Remove(oldRecord);
-            //    }
-            //    // If newer record exist in the list, exit
-            //    if (newRecord != null)
-            //    {
-            //        return;
-            //    }
-            //}
-            //inputList.Add(membershipData);
+        private static bool DatePropertyValueGreaterInFirstRow(MembershipDataRow dataRow1, MembershipDataRow dataRow2, MembershipDataProperty property)
+        {
+            var dateString1 = DateTime.Parse(dataRow1.GetCsvNewValuesForDataProperty(property).FirstOrDefault());
+            var dateString2 = DateTime.Parse(dataRow2.GetCsvNewValuesForDataProperty(property).FirstOrDefault());
+
+            return dateString1 > dateString2;
+        }
+
+        private static bool SameDataRows(MembershipDataRow dataRow1, MembershipDataRow dataRow2, MembershipDataProperty property)
+        {
+            return dataRow1.GetCsvNewValuesForDataProperty(property)
+                    .Any(f => f.Equals(
+                        dataRow2.GetCsvNewValuesForDataProperty(property)
+                                .FirstOrDefault(), StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

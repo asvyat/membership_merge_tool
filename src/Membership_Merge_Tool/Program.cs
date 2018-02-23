@@ -55,20 +55,20 @@ namespace Membership_Merge_Tool
             Console.Write($"Done{Environment.NewLine}");
         }
 
-        private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipData> inputDataList)
+        private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipDataRow> inputDataRowList)
         {
-            if (inputDataList.Any())
+            if (inputDataRowList.Any())
             {
                 Console.Write($"Updating Excel Master File '{masterFile}' ... ");
-                var updatedRows = ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataList);
+                var updatedRows = ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataRowList);
                 Console.Write($"Done{Environment.NewLine}");
                 Console.WriteLine($"Updated {updatedRows} rows");
             }            
         }
 
-        private static List<MembershipData> ReadInputDataFromUpdateFiles(Config configData)
+        private static List<MembershipDataRow> ReadInputDataFromUpdateFiles(Config configData)
         {
-            var returnList = new List<MembershipData>();
+            var returnList = new List<MembershipDataRow>();
             Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");                        
             var inputFiles = Directory.GetFiles(configData.FolderPath_Updates, configData.ConfigEntries[ConfigVariableName.UpdateFileNamePattern]);
 
@@ -81,7 +81,7 @@ namespace Membership_Merge_Tool
                         var line = string.Empty;
                         while ((line = reader.ReadLine()) != null)
                         {
-                            var membershipData = MembershipHelper.GetMembershipData(line);
+                            var membershipData = MembershipHelper.GetMembershipDataRow(line);
                             MembershipHelper.AddOnlyLatestMembershipData(returnList, membershipData);
                         }
                     }
