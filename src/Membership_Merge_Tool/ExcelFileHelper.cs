@@ -37,7 +37,7 @@ namespace Membership_Merge_Tool
                     }
                     else
                     {
-                        updatedRows = UpdateWorksheetRowFromMembershipData(sharedStrings, row, inputDataList);
+                        updatedRows = updatedRows + UpdateWorksheetRowFromMembershipData(sharedStrings, row, inputDataList);
                     }
                     isHeader = false;                    
                 }
@@ -86,9 +86,12 @@ namespace Membership_Merge_Tool
                 });
 
                 // Verify if we need to update that record
-                if (currentMembershipData.ContainsNotMatchingOldAndNewValues() && TryUpdateRow(sharedStrings, row, currentMembershipData))
+                if (currentMembershipData.ContainsNotMatchingOldAndNewValues())
                 {
-                    updatedRows++;
+                    if (TryUpdateRow(sharedStrings, row, currentMembershipData))
+                    {
+                        updatedRows++;
+                    }                    
                 }                
             }
             catch (Exception ex)
@@ -103,21 +106,21 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Return true if able to return Excel row.
         /// </summary>
-        private static bool TryUpdateRow(SharedStringTable sharedStrings, Row oldRow, MembershipData membershipData)
+        private static bool TryUpdateRow(SharedStringTable sharedStrings, Row rowToBeUpdated, MembershipData membershipData)
         {           
             var updated = false;
 
             // Finally updating any cells from Old Row that has any different values 
-            foreach (var oldCell in oldRow.Descendants<Cell>())
+            foreach (var oldCell in rowToBeUpdated.Descendants<Cell>())
             {
                 string oldCellValue;
                 string collumnIndex;
-                GetCellValueAndColumn(sharedStrings, oldRow, oldCell, out oldCellValue, out collumnIndex);
+                GetCellValueAndColumn(sharedStrings, rowToBeUpdated, oldCell, out oldCellValue, out collumnIndex);
 
-                var newValue = membershipData.GetCsvNewValueForMatchingColumnIndex(collumnIndex);
-                if (!newValue.Equals(oldCellValue, StringComparison.InvariantCultureIgnoreCase))
+                var newValueFromCsv = membershipData.GetCsvNewValueForMatchingColumnIndex(collumnIndex);
+                if (!newValueFromCsv.Equals(oldCellValue, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var newCellValue = new CellValue(newValue);
+                    var newCellValue = new CellValue(newValueFromCsv);
                     oldCell.CellValue = newCellValue;
                     updated = true;
                 }

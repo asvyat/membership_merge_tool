@@ -15,19 +15,28 @@ namespace Membership_Merge_Tool
                 && lastName.Equals("last_name", StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public static bool ParseStringToBool(string input)
+        /// <summary>
+        /// Parse input string to Bool value and return string value of it
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="childName">Optional child name, to verify if it's empty and return empty string</param>
+        public static string ParseStringToBoolString(string input, string childName = null)
         {
-            var returnBool = true;
+            var returnBoolString = string.Empty;
             try
             {
-                returnBool = string.IsNullOrWhiteSpace(input) || input.ToLower() == "yes" ? true :
-                input.ToLower() == "no" ? false : bool.Parse(input);
+                // if no child name provided or provided with non-empty value
+                if (childName == null || !string.IsNullOrWhiteSpace(childName))
+                {
+                    returnBoolString = string.IsNullOrWhiteSpace(input) || input.ToLower() == "yes" ? true.ToString() :
+                    input.ToLower() == "no" ? false.ToString() : bool.Parse(input).ToString();
+                }                
             }
             catch (Exception ex)
             {
                 throw new ArgumentException($"Unable to parse to bool this input '{input}'", ex);
             }
-            return returnBool;
+            return returnBoolString;
         }
 
         public static DateTime? ParseStringToDateTime(string input)

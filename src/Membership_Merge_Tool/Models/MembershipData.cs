@@ -1,10 +1,5 @@
-﻿using Membership_Merge_Tool.Enumerations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Membership_Merge_Tool.Models
 {
@@ -12,7 +7,6 @@ namespace Membership_Merge_Tool.Models
     {
         public MembershipDataValues FirstName { get; set; } = new MembershipDataValues();
         public MembershipDataValues LastName { get; set; } = new MembershipDataValues();
-
         public MembershipDataValues DateOfBirth { get; set; } = new MembershipDataValues();
         public MembershipDataValues SpouseFirstName { get; set; } = new MembershipDataValues();
         public MembershipDataValues SpouseLastName { get; set; } = new MembershipDataValues();
@@ -79,33 +73,33 @@ namespace Membership_Merge_Tool.Models
             CellPhone.CsvNewValue = values[14];
             SpouseCellPhone.CsvNewValue = values[15];
             Pager.CsvNewValue = values[16];
-            IncludeInMailingList.CsvNewValue = ValueHelper.ParseStringToBool(values[17]).ToString();
+            IncludeInMailingList.CsvNewValue = ValueHelper.ParseStringToBoolString(values[17]);
             EnvelopeNumber.CsvNewValue = values[18];
 
             Child1Name.CsvNewValue = values[19];
             Child1Dob.CsvNewValue = values[20];
-            Child1Baptized.CsvNewValue = ValueHelper.ParseStringToBool(values[21]).ToString();
-            Child1FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBool(values[22]).ToString();
+            Child1Baptized.CsvNewValue = ValueHelper.ParseStringToBoolString(values[21], Child1Name.CsvNewValue);
+            Child1FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBoolString(values[22], Child1Name.CsvNewValue);
 
             Child2Name.CsvNewValue = values[23];
             Child2Dob.CsvNewValue = values[24];
-            Child2Baptized.CsvNewValue = ValueHelper.ParseStringToBool(values[25]).ToString();
-            Child2FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBool(values[26]).ToString();
+            Child2Baptized.CsvNewValue = ValueHelper.ParseStringToBoolString(values[25], Child2Name.CsvNewValue);
+            Child2FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBoolString(values[26], Child2Name.CsvNewValue);
 
             Child3Name.CsvNewValue = values[27];
             Child3Dob.CsvNewValue = values[28];
-            Child3Baptized.CsvNewValue = ValueHelper.ParseStringToBool(values[29]).ToString();
-            Child3FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBool(values[30]).ToString();
+            Child3Baptized.CsvNewValue = ValueHelper.ParseStringToBoolString(values[29], Child3Name.CsvNewValue);
+            Child3FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBoolString(values[30], Child3Name.CsvNewValue);
 
             Child4Name.CsvNewValue = values[31];
             Child4Dob.CsvNewValue = values[32];
-            Child4Baptized.CsvNewValue = ValueHelper.ParseStringToBool(values[33]).ToString();
-            Child4FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBool(values[34]).ToString();
+            Child4Baptized.CsvNewValue = ValueHelper.ParseStringToBoolString(values[33], Child4Name.CsvNewValue);
+            Child4FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBoolString(values[34], Child4Name.CsvNewValue);
 
             Child5Name.CsvNewValue = values[35];
             Child5Dob.CsvNewValue = values[36];
-            Child5Baptized.CsvNewValue = ValueHelper.ParseStringToBool(values[37]).ToString();
-            Child5FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBool(values[38]).ToString();
+            Child5Baptized.CsvNewValue = ValueHelper.ParseStringToBoolString(values[37], Child5Name.CsvNewValue);
+            Child5FirstCommunionReceived.CsvNewValue = ValueHelper.ParseStringToBoolString(values[38], Child5Name.CsvNewValue);
             
             UpdateDate.CsvNewValue = ValueHelper.ParseStringToDateTime(values[40]).ToString();
         }
@@ -161,7 +155,9 @@ namespace Membership_Merge_Tool.Models
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
 
-                if (membershipValue.ExcelFileColumnName.Equals(columnName, StringComparison.InvariantCultureIgnoreCase))
+                if (membershipValue.ExcelFileColumnName.Equals(columnName, StringComparison.InvariantCultureIgnoreCase)
+                    ||
+                    membershipValue.ExcelFileColumnName.Equals(columnName.Replace("\n", " "), StringComparison.InvariantCultureIgnoreCase))
                 {
                     membershipValue.ExcelFileColumnIndex = columnIndex;                    
                 }
@@ -195,7 +191,8 @@ namespace Membership_Merge_Tool.Models
             foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
-                if (!membershipValue.ExcelCellOldValue.Equals(membershipValue.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(membershipValue.CsvNewValue) &&
+                    !membershipValue.ExcelCellOldValue.Equals(membershipValue.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))
                 {
                     notMatching = true;
                 }
@@ -212,7 +209,7 @@ namespace Membership_Merge_Tool.Models
             foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
-                if (!membershipValue.ExcelFileColumnIndex.Equals(desiredColumnIndex, StringComparison.InvariantCultureIgnoreCase))
+                if (membershipValue.ExcelFileColumnIndex.Equals(desiredColumnIndex, StringComparison.InvariantCultureIgnoreCase))
                 {
                     foundValue = membershipValue.CsvNewValue;
                 }
