@@ -111,11 +111,51 @@ namespace Membership_Merge_Tool.Models
         }
 
         /// <summary>
+        /// To clone Excel Column Index values from another Membership data for each of the Properties in this Data object
+        /// </summary>
+        public void CloneExcelColumnIndexInAllProperties(MembershipData anotherMembershipData)
+        {
+            foreach (var anotherMembershipProperty in anotherMembershipData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var anotherMembershipValue = (MembershipDataValues)anotherMembershipProperty.GetValue(anotherMembershipData);
+
+                // verify and match Column name for each data member
+                foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
+                    if (anotherMembershipValue.ExcelFileColumnName.Equals(membershipValue.ExcelFileColumnName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        membershipValue.ExcelFileColumnIndex = anotherMembershipValue.ExcelFileColumnIndex;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// To clone Csv New Value from another Membership data for each of the Properties in this Data object
+        /// </summary>
+        public void CloneCsvNewValueInAllProperties(MembershipData anotherMembershipData)
+        {
+            foreach (var anotherMembershipProperty in anotherMembershipData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var anotherMembershipValue = (MembershipDataValues)anotherMembershipProperty.GetValue(anotherMembershipData);
+
+                // verify and match Column name for each data member
+                foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
+                    if (anotherMembershipValue.ExcelFileColumnName.Equals(membershipValue.ExcelFileColumnName, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        membershipValue.CsvNewValue = anotherMembershipValue.CsvNewValue;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Update Excel Column Index Value for each of the Properties in this Data object
         /// </summary>
-        /// <param name="columnName"></param>
-        /// <param name="columnIndex"></param>
-        public void UpdateExcelColumnIndexForAllProperties(string columnName, string columnIndex)
+        public void UpdateExcelColumnIndexInAllProperties(string columnName, string columnIndex)
         {
             foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -126,6 +166,58 @@ namespace Membership_Merge_Tool.Models
                     membershipValue.ExcelFileColumnIndex = columnIndex;                    
                 }
             }
+        }
+
+        /// <summary>
+        /// Update Excel Cell Old Values for each of Properties in this Data object
+        /// Each data property should match the same columnIndex
+        /// </summary>
+        public void UpdateExcelCellOldValueInAllProperties(string columnIndex, string cellValue)
+        {
+            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
+
+                if (membershipValue.ExcelFileColumnIndex.Equals(columnIndex, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    membershipValue.ExcelCellOldValue = cellValue;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Verify if there are any Not Matching old Excel and new Csv values
+        /// And if yes, return true
+        /// </summary>
+        public bool ContainsNotMatchingOldAndNewValues()
+        {
+            var notMatching = false;
+            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
+                if (!membershipValue.ExcelCellOldValue.Equals(membershipValue.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    notMatching = true;
+                }
+            }
+            return notMatching;
+        }
+
+        /// <summary>
+        /// Return CSV New Value for desired matching Column Index
+        /// </summary>
+        public string GetCsvNewValueForMatchingColumnIndex(string desiredColumnIndex)
+        {
+            var foundValue = string.Empty;
+            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
+                if (!membershipValue.ExcelFileColumnIndex.Equals(desiredColumnIndex, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    foundValue = membershipValue.CsvNewValue;
+                }
+            }
+            return foundValue;
         }
 
         private void InitializeMembershipData()

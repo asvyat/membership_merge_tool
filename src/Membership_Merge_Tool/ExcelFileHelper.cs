@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 
 namespace Membership_Merge_Tool
 {
@@ -17,7 +18,6 @@ namespace Membership_Merge_Tool
         public static int MergeInputDataIntoExcelFile(string excelFileName, List<MembershipData> inputDataList)
         {
             int updatedRows = 0;
-            var headerMappingOfColumnNames = new List<MembershipDataValues>();
 
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(excelFileName, true))
             {
@@ -37,7 +37,7 @@ namespace Membership_Merge_Tool
                     }
                     else
                     {
-                        updatedRows = UpdateWorksheetRowFromMembershipData(sharedStrings, headerMappingOfColumnNames, row, inputDataList);
+                        updatedRows = UpdateWorksheetRowFromMembershipData(sharedStrings, row, inputDataList);
                     }
                     isHeader = false;                    
                 }
@@ -54,7 +54,7 @@ namespace Membership_Merge_Tool
             return updatedRows;
         }
 
-        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, List<MembershipDataValues> columnMapperList, Row row, List<MembershipData> inputDataList)
+        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, Row row, List<MembershipData> inputDataList)
         {
             int updatedRows = 0;
             var cellValue = string.Empty;
@@ -62,7 +62,8 @@ namespace Membership_Merge_Tool
             var rowIndex = row.RowIndex.ToString();
             try
             {
-                var currentCellMapping = new List<MembershipDataValues>();
+                var currentMembershipData = new MembershipData();
+                currentMembershipData.CloneExcelColumnIndexInAllProperties(inputDataList.FirstOrDefault());
 
                 // First collecting current old data for each cell for update
                 foreach (var cell in row.Descendants<Cell>())
@@ -70,22 +71,25 @@ namespace Membership_Merge_Tool
                     cellValue = collumnIndex = string.Empty;
                     GetCellValueAndColumn(sharedStrings, row, cell, out cellValue, out collumnIndex);
 
-                    // If there's any mapping record for this specific cell column
-                    var mapping = columnMapperList.Where(m => m.ExcelFileColumnIndex == collumnIndex).FirstOrDefault();
-                    mapping = mapping == null
-                        ? new MembershipDataValues()
-                        : mapping;
-                    mapping.ExcelCellOldValue = cellValue;
-                    currentCellMapping.Add(mapping);
+                    // Update Excel Values for each inputData record
+                    currentMembershipData.UpdateExcelCellOldValueInAllProperties(collumnIndex, cellValue);                                       
                 };
 
-                // Next compare current values and update them if needed
-                var newRow = new Row();
-                //if (currentCellMapping.Any() && TryGetUpdatedRow(sharedStrings, row, currentCellMapping, inputDataList, out newRow))
-                //{
-                //    row = newRow;
-                //    updatedRows++;
-                //}
+                // Next copy all the values from inputData list that match emails
+                inputDataList.ForEach(m =>
+                {
+                    if (m.Email.CsvNewValue.Equals(currentMembershipData.Email.ExcelCellOldValue, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        currentMembershipData.CloneCsvNewValueInAllProperties(m);
+                    }
+
+                });
+
+                // Verify if we need to update that record
+                if (currentMembershipData.ContainsNotMatchingOldAndNewValues() && TryUpdateRow(sharedStrings, row, currentMembershipData))
+                {
+                    updatedRows++;
+                }                
             }
             catch (Exception ex)
             {
@@ -97,69 +101,30 @@ namespace Membership_Merge_Tool
         }
 
         /// <summary>
-        /// Return true if able to return updated row in out parameter.
-        /// Updated row returned if UpdateDate field of is greater then in the old Row.
+        /// Return true if able to return Excel row.
         /// </summary>
-        private static bool TryGetUpdatedRow(SharedStringTable sharedStrings, Row oldRow, List<MembershipDataValues> currentCellMapping, List<MembershipData> inputDataList, out Row newRow)
-        {
-            //var oldKeyCell = currentCellMapping
-            //    .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnIndex)) // with File Index Column
-            //    .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnName)) // with File Column Name
-            //    .Where(m => m.MembershipDataPropertyName == MembershipDataProperty.Email)
-            //    .FirstOrDefault();
-            newRow = new Row();
+        private static bool TryUpdateRow(SharedStringTable sharedStrings, Row oldRow, MembershipData membershipData)
+        {           
+            var updated = false;
 
-            //// Exiting, If key cell is empty
-            //if (oldKeyCell == null || string.IsNullOrWhiteSpace(oldKeyCell.ExcelCellOldValue))
-            //{
-            //    return false;
-            //}
-
-            // First check if there is new data for specific email
-            //var newData = inputDataList.Where(m => m.Email.Equals(oldKeyCell.ExcelCellOldValue));
-            //if (!newData.Any())
-            //{
-            //    return false;
-            //}
-
-            // Finally updating any cells from Old Row that has any values in the mapping
-            //foreach (var oldCell in oldRow.Descendants<Cell>())
-            //{
-            //    string oldCellValue;
-            //    string collumnIndex;
-            //    GetCellValueAndColumn(sharedStrings, oldRow, oldCell, out oldCellValue, out collumnIndex);
-
-            //    var map = currentCellMapping.Where(m => m.ExcelFileColumnIndex == collumnIndex);
-            //    if (map != null && map.Any())
-            //    {
-            //        var newCellValue = GetCellValueForMembershipProperty(map.FirstOrDefault().MembershipDataPropertyName, newData.FirstOrDefault(), oldCell.CellValue);
-            //        oldCell.CellValue = newCellValue == null ? oldCell.CellValue : newCellValue;
-            //    }
-
-            //}
-            return true;
-        }
-
-        /// <summary>
-        /// Return new CellValue based on the MembershipData property name
-        /// </summary>
-        private static CellValue GetCellValueForMembershipProperty(string membershipDataPropertyName, MembershipData newData, CellValue oldCellValue)
-        {
-            CellValue returnCell = null;
-            var newPropertyValue = newData.GetType().GetProperty(membershipDataPropertyName).GetValue(newData, null);            
-            if (newPropertyValue != null && !string.IsNullOrWhiteSpace(newPropertyValue.ToString()))
+            // Finally updating any cells from Old Row that has any different values 
+            foreach (var oldCell in oldRow.Descendants<Cell>())
             {
-                returnCell = new CellValue(newPropertyValue.ToString());
+                string oldCellValue;
+                string collumnIndex;
+                GetCellValueAndColumn(sharedStrings, oldRow, oldCell, out oldCellValue, out collumnIndex);
 
-                // If old and new cell values are the same, return null so it will not be updated
-                if (oldCellValue == returnCell)
+                var newValue = membershipData.GetCsvNewValueForMatchingColumnIndex(collumnIndex);
+                if (!newValue.Equals(oldCellValue, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return null;
+                    var newCellValue = new CellValue(newValue);
+                    oldCell.CellValue = newCellValue;
+                    updated = true;
                 }
             }
-            return returnCell;
+            return updated;
         }
-
+        
         private static void UpdateMembershipPropertiesWithColumnIndex(SharedStringTable sharedStrings, Row row, List<MembershipData> membershipDataList)
         {
             // For each header cell match to a column name for each properties
@@ -172,7 +137,7 @@ namespace Membership_Merge_Tool
 
                 foreach (var membershipData in membershipDataList)
                 {
-                    membershipData.UpdateExcelColumnIndexForAllProperties(cellValue, columnIndex);
+                    membershipData.UpdateExcelColumnIndexInAllProperties(cellValue, columnIndex);
                 }
             }
         }
