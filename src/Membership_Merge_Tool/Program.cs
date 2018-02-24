@@ -55,7 +55,7 @@ namespace Membership_Merge_Tool
             Console.Write($"Done{Environment.NewLine}");
         }
 
-        private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipDataRow> inputDataRowList)
+        private static void MergeInputDataIntoMasterExcelFile(string masterFile, List<MembershipData> inputDataRowList)
         {
             if (inputDataRowList.Any())
             {
@@ -66,9 +66,9 @@ namespace Membership_Merge_Tool
             }            
         }
 
-        private static List<MembershipDataRow> ReadInputDataFromUpdateFiles(Config configData)
+        private static List<MembershipData> ReadInputDataFromUpdateFiles(Config configData)
         {
-            var returnList = new List<MembershipDataRow>();
+            var returnList = new List<MembershipData>();
             Console.Write($"Reading Input Update Files from '{configData.FolderPath_Updates}' ... ");                        
             var inputFiles = Directory.GetFiles(configData.FolderPath_Updates, configData.ConfigEntries[ConfigVariableName.UpdateFileNamePattern]);
 

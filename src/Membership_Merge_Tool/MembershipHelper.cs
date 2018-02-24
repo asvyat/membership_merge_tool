@@ -11,7 +11,7 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Get Membership data object from CSV input string
         /// </summary>
-        public static MembershipDataRow GetMembershipDataRow(string csvString)
+        public static MembershipData GetMembershipDataRow(string csvString)
         {
             var values = ValueHelper.SplitCSV(csvString);
 
@@ -26,14 +26,14 @@ namespace Membership_Merge_Tool
             {
                 return null;
             }
-            return new MembershipDataRow(values);
+            return new MembershipData(values);
         }
 
         /// <summary>
         /// Add only latest Membership Data object into input list
         /// For example if there are several input files older and newer, will keep newer data
         /// </summary>
-        public static void AddOnlyLatestMembershipData(List<MembershipDataRow> inputList, MembershipDataRow potentiallyNewerMembershipDataRow)
+        public static void AddOnlyLatestMembershipData(List<MembershipData> inputList, MembershipData potentiallyNewerMembershipDataRow)
         {
             if (potentiallyNewerMembershipDataRow == null)
             {
@@ -41,16 +41,16 @@ namespace Membership_Merge_Tool
             }
             // Get all the same rows with First and Last Names and email
             var existingRecordsInList = inputList
-                .Where(i => SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.FirstName)
-                && SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.LastName)
-                && SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.Email));
+                .Where(i => i.FirstName.CsvNewValue.Equals(potentiallyNewerMembershipDataRow.FirstName.CsvNewValue, StringComparison.InvariantCultureIgnoreCase)
+                && (i.LastName.CsvNewValue.Equals(potentiallyNewerMembershipDataRow.LastName.CsvNewValue, StringComparison.InvariantCultureIgnoreCase)
+                && (i.Email.CsvNewValue.Equals(potentiallyNewerMembershipDataRow.Email.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))));
 
             // If matching rows found continue checking on UpdateDate
             if (existingRecordsInList != null && existingRecordsInList.Any())
             {
                 // If Update date matches on both rows, nothing to add
                 var sameRecord = existingRecordsInList
-                    .Where(i => SameDataRows(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.UpdateDate))
+                    .Where(i => i.UpdateDate.CsvNewValue.Equals(potentiallyNewerMembershipDataRow.UpdateDate.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))
                     .FirstOrDefault();
 
                 if (sameRecord != null)
@@ -58,50 +58,34 @@ namespace Membership_Merge_Tool
                     return;
                 }
 
-                var oldRecord = existingRecordsInList
-                    .Where(i => DatePropertyValueGreaterInFirstRow(i, potentiallyNewerMembershipDataRow, MembershipDataProperty.UpdateDate))
+                var oldRecordInList = existingRecordsInList
+                    .Where(i => (DateTime.Parse(i.UpdateDate.CsvNewValue) < DateTime.Parse(potentiallyNewerMembershipDataRow.UpdateDate.CsvNewValue)))
                     .FirstOrDefault();
 
-                var newRecord = existingRecordsInList
-                    .Where(i => DatePropertyValueGreaterInFirstRow(potentiallyNewerMembershipDataRow, i, MembershipDataProperty.UpdateDate))
+                var newRecordInList = existingRecordsInList
+                    .Where(i => (DateTime.Parse(i.UpdateDate.CsvNewValue) > DateTime.Parse(potentiallyNewerMembershipDataRow.UpdateDate.CsvNewValue)))
                     .FirstOrDefault();
 
                 // If newer and older records exist, something is not right here
-                if (oldRecord != null && newRecord != null)
+                if (oldRecordInList != null && newRecordInList != null)
                 {
                     throw new InvalidOperationException("Found newer and older records in Membership List! " +
-                        $"For First Name '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.FirstName).FirstOrDefault()}', "+
-                        $"Last Name '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.LastName).FirstOrDefault()}', "+
-                        $"Email '{newRecord.GetCsvNewValuesForDataProperty(MembershipDataProperty.Email).FirstOrDefault()}'");
+                        $"For First Name '{newRecordInList.FirstName.CsvNewValue}', "+
+                        $"Last Name '{newRecordInList.LastName.CsvNewValue}', "+
+                        $"Email '{newRecordInList.Email.CsvNewValue}'");
                 }
                 // Removes old record first
-                if (oldRecord != null)
+                if (oldRecordInList != null)
                 {
-                    inputList.Remove(oldRecord);
+                    inputList.Remove(oldRecordInList);
                 }
-                // If newer record exist in the list, exit
-                if (newRecord != null)
+                // If newer record exist in the original old list, exit, no need to add potentially newer record
+                if (newRecordInList != null)
                 {
                     return;
                 }
             }
             inputList.Add(potentiallyNewerMembershipDataRow);
-        }
-
-        private static bool DatePropertyValueGreaterInFirstRow(MembershipDataRow dataRow1, MembershipDataRow dataRow2, MembershipDataProperty property)
-        {
-            var dateString1 = DateTime.Parse(dataRow1.GetCsvNewValuesForDataProperty(property).FirstOrDefault());
-            var dateString2 = DateTime.Parse(dataRow2.GetCsvNewValuesForDataProperty(property).FirstOrDefault());
-
-            return dateString1 > dateString2;
-        }
-
-        private static bool SameDataRows(MembershipDataRow dataRow1, MembershipDataRow dataRow2, MembershipDataProperty property)
-        {
-            return dataRow1.GetCsvNewValuesForDataProperty(property)
-                    .Any(f => f.Equals(
-                        dataRow2.GetCsvNewValuesForDataProperty(property)
-                                .FirstOrDefault(), StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

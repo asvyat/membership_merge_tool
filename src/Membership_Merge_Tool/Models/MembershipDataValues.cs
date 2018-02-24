@@ -9,10 +9,8 @@ namespace Membership_Merge_Tool.Models
     /// for example: MembershipData.FirstName map to ExcelFileHeaderRow.First_Name and Column Index
     /// This class will hold this mapping for each property of the MembershipData class
     /// </summary>
-    public class MembershipDataCellMapper
+    public class MembershipDataValues
     {
-        public MembershipDataProperty MembershipDataPropertyName { get; set; }
-
         public string ExcelFileColumnName { get; set; } = string.Empty;
         public string ExcelFileColumnIndex { get; set; } = string.Empty;
         public string ExcelCellOldValue { get; set; } = string.Empty;

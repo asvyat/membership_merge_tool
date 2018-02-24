@@ -13,49 +13,49 @@ namespace Membership_Merge_Tool.Tests
         [TestMethod()]
         public void AddOnlyLatestMembershipData_NewRecordUpdated_Success_Test()
         {
-            var testOldRecord = new MembershipDataRow();
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.FirstName, "testFirstName");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.LastName, "testLastName");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Email, "testEmail");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Address, "oldAddress");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.UpdateDate, DateTime.Parse("02/15/18 10:00").ToShortDateString());
+            var testOldRecord = new MembershipData();
+            testOldRecord.FirstName.CsvNewValue = "testFirstName";
+            testOldRecord.LastName.CsvNewValue = "testLastName";
+            testOldRecord.Email.CsvNewValue = "testEmail";
+            testOldRecord.Address.CsvNewValue = "oldAddress";
+            testOldRecord.UpdateDate.CsvNewValue = DateTime.Parse("02/15/18 10:00").ToString();
             
-            var testRecordWithNewerDate = new MembershipDataRow();
-            testRecordWithNewerDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.FirstName, "testFirstName");
-            testRecordWithNewerDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.LastName, "testLastName");
-            testRecordWithNewerDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Email, "testEmail");
-            testRecordWithNewerDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Address, "newAddress");
-            testRecordWithNewerDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.UpdateDate, DateTime.Parse("02/15/18 11:00").ToShortDateString());
+            var testRecordWithNewerDate = new MembershipData();
+            testRecordWithNewerDate.FirstName.CsvNewValue = "testFirstName";
+            testRecordWithNewerDate.LastName.CsvNewValue = "testLastName";
+            testRecordWithNewerDate.Email.CsvNewValue = "testEmail";
+            testRecordWithNewerDate.Address.CsvNewValue = "newAddress";
+            testRecordWithNewerDate.UpdateDate.CsvNewValue = DateTime.Parse("02/15/18 11:00").ToString();
             
-            var testList = new List<MembershipDataRow> { testOldRecord };
+            var testList = new List<MembershipData> { testOldRecord };
             MembershipHelper.AddOnlyLatestMembershipData(testList, testRecordWithNewerDate);
 
             Assert.AreEqual(1, testList.Count);
-            Assert.AreEqual("newAddress", testList.FirstOrDefault().GetCsvNewValuesForDataProperty(MembershipDataProperty.Address).FirstOrDefault());
+            Assert.AreEqual("newAddress", testList.FirstOrDefault().Address.CsvNewValue);
         }
 
         [TestMethod()]
         public void AddOnlyLatestMembershipData_OldRecordStays_Success_Test()
         {
-            var testOldRecord = new MembershipDataRow();
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.FirstName, "testFirstName");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.LastName, "testLastName");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Email, "testEmail");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Address, "oldAddress");
-            testOldRecord.UpdateDataItemWithCsvNewValue(MembershipDataProperty.UpdateDate, DateTime.Parse("02/15/18 10:00").ToShortDateString());
+            var testOldRecord = new MembershipData();
+            testOldRecord.FirstName.CsvNewValue = "testFirstName";
+            testOldRecord.LastName.CsvNewValue = "testLastName";
+            testOldRecord.Email.CsvNewValue = "testEmail";
+            testOldRecord.Address.CsvNewValue = "oldAddress";
+            testOldRecord.UpdateDate.CsvNewValue = DateTime.Parse("02/15/18 10:00").ToShortDateString();
 
-            var testRecordWithOlderDate = new MembershipDataRow();
-            testRecordWithOlderDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.FirstName, "testFirstName");
-            testRecordWithOlderDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.LastName, "testLastName");
-            testRecordWithOlderDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Email, "testEmail");
-            testRecordWithOlderDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.Address, "newAddress");
-            testRecordWithOlderDate.UpdateDataItemWithCsvNewValue(MembershipDataProperty.UpdateDate, DateTime.Parse("02/14/18 11:00").ToShortDateString());
+            var testNewRecordWithOlderDate = new MembershipData();
+            testNewRecordWithOlderDate.FirstName.CsvNewValue = "testFirstName";
+            testNewRecordWithOlderDate.LastName.CsvNewValue = "testLastName";
+            testNewRecordWithOlderDate.Email.CsvNewValue = "testEmail";
+            testNewRecordWithOlderDate.Address.CsvNewValue = "newAddress";
+            testNewRecordWithOlderDate.UpdateDate.CsvNewValue = DateTime.Parse("02/14/18 11:00").ToShortDateString();
 
-            var testList = new List<MembershipDataRow> { testOldRecord };
-            MembershipHelper.AddOnlyLatestMembershipData(testList, testRecordWithOlderDate);
+            var testList = new List<MembershipData> { testOldRecord };
+            MembershipHelper.AddOnlyLatestMembershipData(testList, testNewRecordWithOlderDate);
 
             Assert.AreEqual(1, testList.Count);
-            Assert.AreEqual("oldAddress", testList.FirstOrDefault().GetCsvNewValuesForDataProperty(MembershipDataProperty.Address).FirstOrDefault());
+            Assert.AreEqual("oldAddress", testList.FirstOrDefault().Address.CsvNewValue);
         }
 
         [TestMethod()]

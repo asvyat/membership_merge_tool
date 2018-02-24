@@ -14,10 +14,10 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Merge or update input data into Excel File
         /// </summary>
-        public static int MergeInputDataIntoExcelFile(string excelFileName, List<MembershipDataRow> inputDataList)
+        public static int MergeInputDataIntoExcelFile(string excelFileName, List<MembershipData> inputDataList)
         {
             int updatedRows = 0;
-            var headerMappingOfColumnNames = new List<MembershipDataCellMapper>();
+            var headerMappingOfColumnNames = new List<MembershipDataValues>();
 
             using (SpreadsheetDocument document = SpreadsheetDocument.Open(excelFileName, true))
             {
@@ -33,7 +33,7 @@ namespace Membership_Merge_Tool
                 {
                     if (isHeader)
                     {
-                        headerMappingOfColumnNames = GetMembershipColumnMapper(sharedStrings, row, inputDataList.FirstOrDefault());
+                        UpdateMembershipPropertiesWithColumnIndex(sharedStrings, row, inputDataList);
                     }
                     else
                     {
@@ -54,7 +54,7 @@ namespace Membership_Merge_Tool
             return updatedRows;
         }
 
-        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, List<MembershipDataCellMapper> columnMapperList, Row row, List<MembershipDataRow> inputDataList)
+        private static int UpdateWorksheetRowFromMembershipData(SharedStringTable sharedStrings, List<MembershipDataValues> columnMapperList, Row row, List<MembershipData> inputDataList)
         {
             int updatedRows = 0;
             var cellValue = string.Empty;
@@ -62,7 +62,7 @@ namespace Membership_Merge_Tool
             var rowIndex = row.RowIndex.ToString();
             try
             {
-                var currentCellMapping = new List<MembershipDataCellMapper>();
+                var currentCellMapping = new List<MembershipDataValues>();
 
                 // First collecting current old data for each cell for update
                 foreach (var cell in row.Descendants<Cell>())
@@ -73,7 +73,7 @@ namespace Membership_Merge_Tool
                     // If there's any mapping record for this specific cell column
                     var mapping = columnMapperList.Where(m => m.ExcelFileColumnIndex == collumnIndex).FirstOrDefault();
                     mapping = mapping == null
-                        ? new MembershipDataCellMapper()
+                        ? new MembershipDataValues()
                         : mapping;
                     mapping.ExcelCellOldValue = cellValue;
                     currentCellMapping.Add(mapping);
@@ -100,20 +100,20 @@ namespace Membership_Merge_Tool
         /// Return true if able to return updated row in out parameter.
         /// Updated row returned if UpdateDate field of is greater then in the old Row.
         /// </summary>
-        private static bool TryGetUpdatedRow(SharedStringTable sharedStrings, Row oldRow, List<MembershipDataCellMapper> currentCellMapping, List<MembershipDataRow> inputDataList, out Row newRow)
+        private static bool TryGetUpdatedRow(SharedStringTable sharedStrings, Row oldRow, List<MembershipDataValues> currentCellMapping, List<MembershipData> inputDataList, out Row newRow)
         {
-            var oldKeyCell = currentCellMapping
-                .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnIndex)) // with File Index Column
-                .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnName)) // with File Column Name
-                .Where(m => m.MembershipDataPropertyName == MembershipDataProperty.Email)
-                .FirstOrDefault();
+            //var oldKeyCell = currentCellMapping
+            //    .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnIndex)) // with File Index Column
+            //    .Where(m => !string.IsNullOrWhiteSpace(m.ExcelFileColumnName)) // with File Column Name
+            //    .Where(m => m.MembershipDataPropertyName == MembershipDataProperty.Email)
+            //    .FirstOrDefault();
             newRow = new Row();
 
-            // Exiting, If key cell is empty
-            if (oldKeyCell == null || string.IsNullOrWhiteSpace(oldKeyCell.ExcelCellOldValue))
-            {
-                return false;
-            }
+            //// Exiting, If key cell is empty
+            //if (oldKeyCell == null || string.IsNullOrWhiteSpace(oldKeyCell.ExcelCellOldValue))
+            //{
+            //    return false;
+            //}
 
             // First check if there is new data for specific email
             //var newData = inputDataList.Where(m => m.Email.Equals(oldKeyCell.ExcelCellOldValue));
@@ -143,7 +143,7 @@ namespace Membership_Merge_Tool
         /// <summary>
         /// Return new CellValue based on the MembershipData property name
         /// </summary>
-        private static CellValue GetCellValueForMembershipProperty(string membershipDataPropertyName, MembershipDataRow newData, CellValue oldCellValue)
+        private static CellValue GetCellValueForMembershipProperty(string membershipDataPropertyName, MembershipData newData, CellValue oldCellValue)
         {
             CellValue returnCell = null;
             var newPropertyValue = newData.GetType().GetProperty(membershipDataPropertyName).GetValue(newData, null);            
@@ -160,71 +160,21 @@ namespace Membership_Merge_Tool
             return returnCell;
         }
 
-        private static List<MembershipDataCellMapper> GetMembershipColumnMapper(SharedStringTable sharedStrings, Row row, MembershipDataRow membershipData)
+        private static void UpdateMembershipPropertiesWithColumnIndex(SharedStringTable sharedStrings, Row row, List<MembershipData> membershipDataList)
         {
-            var returnList = new List<MembershipDataCellMapper>();
-
-            // Firstly get all the properties from MembershipData except Children List
-            // using reflection to create a list of existing Doc properties and their values
-            //foreach (var membershipProperty in membershipData.GetType().GetProperties()
-            //    .Where(p => p.PropertyType != typeof(List<ChildData>)).ToList())
-            //{                
-            //    var descriptionAttribute = (DescriptionAttribute)membershipProperty.GetCustomAttributes(false).FirstOrDefault();
-
-            //    var membershipColumnMapper = new MembershipDataCellMapper { MembershipDataPropertyName = membershipProperty.Name };
-            //    if (descriptionAttribute != null && !string.IsNullOrWhiteSpace(descriptionAttribute.Description))
-            //    {
-            //        membershipColumnMapper.ExcelFileColumnName = descriptionAttribute.Description;
-            //    }
-            //    else // If no Description Attribute defined, will use Property name, meaning Property Name should Match Column Name in Excel
-            //    {
-            //        membershipColumnMapper.ExcelFileColumnName = membershipProperty.Name;
-            //    }
-            //    returnList.Add(membershipColumnMapper);
-            //}
-
-            // Secondly get all the properties from Child Data for 5 children
-            // using reflection to create a list of existing Doc properties and their values
-            // Make any test child data to get prop.names and descr.
-            //var childData = new ChildData { ChildName = "NotRealChild", DateOfBirth = DateTime.Now};
-            //for (int childIndex = 1; childIndex < 6; childIndex++)
-            //{
-            //    foreach (var childProperty in childData.GetType().GetProperties())
-            //    {
-            //        var descriptionAttribute = (DescriptionAttribute)childProperty.GetCustomAttributes(false).FirstOrDefault();
-            //        var childDescription = descriptionAttribute.Description.Replace("#", childIndex.ToString());
-
-            //        var membershipColumnMapper = new MembershipDataCellMapper
-            //            { MembershipDataPropertyName = childProperty.Name, ExcelFileColumnName = childDescription };
-
-            //        returnList.Add(membershipColumnMapper);
-            //    }
-            //}
-           
-            // Next match to a column name from the header row and gets Column index of the matched one
+            // For each header cell match to a column name for each properties
+            // in Membership data object and update Column Index values
             foreach (Cell cell in row.Descendants<Cell>())
             {
                 string cellValue;
-                string collumnIndex;
-                GetCellValueAndColumn(sharedStrings, row, cell, out cellValue, out collumnIndex);
+                string columnIndex;
+                GetCellValueAndColumn(sharedStrings, row, cell, out cellValue, out columnIndex);
 
-                var toUpdate = returnList
-                    .SingleOrDefault(i => i.ExcelFileColumnName.Equals(cellValue, StringComparison.InvariantCultureIgnoreCase));
-
-                // In case of non existent column name, try to replace new line chars with space and try again
-                if (toUpdate == null)
+                foreach (var membershipData in membershipDataList)
                 {
-                    cellValue = cellValue.Replace("\n", " ");
-                    toUpdate = returnList
-                    .SingleOrDefault(i => i.ExcelFileColumnName.Equals(cellValue, StringComparison.InvariantCultureIgnoreCase));
-                }
-
-                if (toUpdate != null)
-                {
-                    toUpdate.ExcelFileColumnIndex = collumnIndex;
+                    membershipData.UpdateExcelColumnIndexForAllProperties(cellValue, columnIndex);
                 }
             }
-            return returnList;
         }
 
         public static void GetCellValueAndColumn(SharedStringTable sharedStrings, Row row, Cell cell, out string cellValue, out string collumnIndex)
