@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Membership_Merge_Tool.Enumerations;
 using Membership_Merge_Tool.Models;
@@ -45,10 +46,7 @@ namespace Membership_Merge_Tool
                 {
                     // Save the worksheet.
                     firstSheetPart.Worksheet.Save();
-
-                    // for recacluation of formula
-                    document.WorkbookPart.Workbook.CalculationProperties.ForceFullCalculation = true;
-                    document.WorkbookPart.Workbook.CalculationProperties.FullCalculationOnLoad = true;
+                    document.Save();
                 }
             }
             return updatedRows;
@@ -66,6 +64,7 @@ namespace Membership_Merge_Tool
                 currentMembershipData.CloneExcelColumnIndexInAllProperties(inputDataList.FirstOrDefault());
 
                 // First collecting current old data for each cell for update
+                // into currentMembershipData to verify new and old values next
                 foreach (var cell in row.Descendants<Cell>())
                 {
                     cellValue = collumnIndex = string.Empty;
@@ -75,22 +74,27 @@ namespace Membership_Merge_Tool
                     currentMembershipData.UpdateExcelCellOldValueInAllProperties(collumnIndex, cellValue);                                       
                 };
 
-                // Next copy all the values from inputData list that match emails
+                // Next copy all CSV New values from inputData list that match the same email
                 inputDataList.ForEach(m =>
-                {
-                    if (m.Email.CsvNewValue.Equals(currentMembershipData.Email.ExcelCellOldValue, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        currentMembershipData.CloneCsvNewValueInAllProperties(m);
-                    }
+                        if (m.Email.CsvNewValue.Equals(currentMembershipData.Email.ExcelCellOldValue, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            currentMembershipData.CloneCsvNewValueInAllProperties(m);
+                        }
+                    });
 
-                });
+                // If no new value in email, nothing to update
+                if (string.IsNullOrEmpty(currentMembershipData.Email.CsvNewValue))
+                {
+                    return updatedRows;
+                }
 
-                // Verify if we need to update that record
-                if (currentMembershipData.ContainsNotMatchingOldAndNewValues())
+                // Finally verify if we need to update that record
+                if (currentMembershipData.ContainsAnyNotMatchingOldAndNewValues())
                 {
                     if (TryUpdateRow(sharedStrings, row, currentMembershipData))
                     {
-                        updatedRows++;
+                        updatedRows++;                        
                     }                    
                 }                
             }
@@ -111,17 +115,20 @@ namespace Membership_Merge_Tool
             var updated = false;
 
             // Finally updating any cells from Old Row that has any different values 
-            foreach (var oldCell in rowToBeUpdated.Descendants<Cell>())
+            foreach (var cell in rowToBeUpdated.Descendants<Cell>())
             {
                 string oldCellValue;
                 string collumnIndex;
-                GetCellValueAndColumn(sharedStrings, rowToBeUpdated, oldCell, out oldCellValue, out collumnIndex);
+                GetCellValueAndColumn(sharedStrings, rowToBeUpdated, cell, out oldCellValue, out collumnIndex);
 
-                var newValueFromCsv = membershipData.GetCsvNewValueForMatchingColumnIndex(collumnIndex);
-                if (!newValueFromCsv.Equals(oldCellValue, StringComparison.InvariantCultureIgnoreCase))
+                var newValueFromCsv = string.Empty;
+                if (membershipData.TryGetCsvNewValueForMatchingColumnIndex(collumnIndex, out newValueFromCsv)
+                    &&
+                    !newValueFromCsv.Equals(oldCellValue, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var newCellValue = new CellValue(newValueFromCsv);
-                    oldCell.CellValue = newCellValue;
+                    cell.CellValue = newCellValue;
+                    cell.DataType = new EnumValue<CellValues>(CellValues.String);
                     updated = true;
                 }
             }

@@ -19,7 +19,7 @@ namespace Membership_Merge_Tool.Models.Tests
             testRecord.LastName.CsvNewValue = "testLastName";
             testRecord.Email.CsvNewValue = "testEmail";
 
-            Assert.IsTrue(testRecord.ContainsNotMatchingOldAndNewValues());
+            Assert.IsTrue(testRecord.ContainsAnyNotMatchingOldAndNewValues());
         }
 
         [TestMethod()]
@@ -31,7 +31,7 @@ namespace Membership_Merge_Tool.Models.Tests
             testRecord.Email.CsvNewValue = "testEmail";
             testRecord.FirstName.ExcelCellOldValue = "oldFirstName";
 
-            Assert.IsTrue(testRecord.ContainsNotMatchingOldAndNewValues());
+            Assert.IsTrue(testRecord.ContainsAnyNotMatchingOldAndNewValues());
         }
 
         [TestMethod()]
@@ -43,7 +43,7 @@ namespace Membership_Merge_Tool.Models.Tests
             testRecord.Email.CsvNewValue = "testEmail";            
             testRecord.Email.ExcelCellOldValue = "testEmail";
 
-            Assert.IsFalse(testRecord.ContainsNotMatchingOldAndNewValues());
+            Assert.IsFalse(testRecord.ContainsAnyNotMatchingOldAndNewValues());
         }
 
         [TestMethod]
