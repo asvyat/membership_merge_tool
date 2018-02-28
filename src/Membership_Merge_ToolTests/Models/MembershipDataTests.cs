@@ -49,7 +49,7 @@ namespace Membership_Merge_Tool.Models.Tests
         [TestMethod]
         public void MembershipData_FromDataValuesWithQuotes_Success()
         {
-            var testRecordRow = @"FirstName,LastName,""January 1, 1974"",Mama,Nadya,""February 2, 1974"",""123 Lapaivka Street"",Lapaivka,WA,USA,98100,425-123-3456,testEmail@hotmail.com,,,,,Yes,,""Child 1"",""January 1, 2000"",Yes,No,,,No,No,,,No,No,,,No,No,,,No,No,5,""2018-02-10 11:19:13"",""2018-02-10 11:19:25""";
+            var testRecordRow = @"FirstName,LastName,""January 1, 1974"",Mama,Nadya,""February 2, 1974"",""123 Lapaivka Street"",Lapaivka,WA,USA,98100,425-123-3456,testEmail@hotmail.com,,,,,Yes,""Child 1"",""January 1, 2000"",Yes,No,,,No,No,,,No,No,,,No,No,,,No,No,5,""2018-02-10 11:19:13"",""2018-02-10 11:19:25""";
             var testDataRow = MembershipHelper.GetMembershipDataRow(testRecordRow);
 
             Assert.AreEqual("FirstName", testDataRow.FirstName.CsvNewValue);

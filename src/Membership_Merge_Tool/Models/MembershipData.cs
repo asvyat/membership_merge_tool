@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Membership_Merge_Tool.Models
@@ -44,6 +46,11 @@ namespace Membership_Merge_Tool.Models
         public MembershipDataValues Child5Dob { get; set; } = new MembershipDataValues();
         public MembershipDataValues Child5Baptized { get; set; } = new MembershipDataValues();
         public MembershipDataValues Child5FirstCommunionReceived { get; set; } = new MembershipDataValues();
+
+        /// <summary>
+        /// If current record exists in the Excel File
+        /// </summary>
+        public bool ExistsInExcelFile { get; set; } = false;
 
         public MembershipData()
         {
@@ -107,12 +114,12 @@ namespace Membership_Merge_Tool.Models
         /// </summary>
         public void CloneExcelColumnIndexInAllProperties(MembershipData anotherMembershipData)
         {
-            foreach (var anotherMembershipProperty in anotherMembershipData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var anotherMembershipProperty in GetAllMembershipDataValuesProperties(anotherMembershipData))
             {
                 var anotherMembershipValue = (MembershipDataValues)anotherMembershipProperty.GetValue(anotherMembershipData);
 
                 // verify and match Column name for each data member
-                foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
                 {
                     var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
                     if (anotherMembershipValue.ExcelFileColumnName.Equals(membershipValue.ExcelFileColumnName, StringComparison.InvariantCultureIgnoreCase))
@@ -128,12 +135,12 @@ namespace Membership_Merge_Tool.Models
         /// </summary>
         public void CloneCsvNewValueInAllProperties(MembershipData anotherMembershipData)
         {
-            foreach (var anotherMembershipProperty in anotherMembershipData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var anotherMembershipProperty in GetAllMembershipDataValuesProperties(anotherMembershipData))
             {
                 var anotherMembershipValue = (MembershipDataValues)anotherMembershipProperty.GetValue(anotherMembershipData);
 
                 // verify and match Column name for each data member
-                foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
                 {
                     var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
                     if (anotherMembershipValue.ExcelFileColumnName.Equals(membershipValue.ExcelFileColumnName, StringComparison.InvariantCultureIgnoreCase))
@@ -149,7 +156,7 @@ namespace Membership_Merge_Tool.Models
         /// </summary>
         public void UpdateExcelColumnIndexInAllProperties(string columnName, string columnIndex)
         {
-            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
 
@@ -168,7 +175,7 @@ namespace Membership_Merge_Tool.Models
         /// </summary>
         public void UpdateExcelCellOldValueInAllProperties(string columnIndex, string cellValue)
         {
-            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
 
@@ -186,7 +193,7 @@ namespace Membership_Merge_Tool.Models
         public bool ContainsAnyNotMatchingOldAndNewValues()
         {
             var anyNotMatchingFound = false;
-            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
                 if (!membershipValue.ExcelCellOldValue.Equals(membershipValue.CsvNewValue, StringComparison.InvariantCultureIgnoreCase))
@@ -197,6 +204,21 @@ namespace Membership_Merge_Tool.Models
             return anyNotMatchingFound;
         }
 
+        public IEnumerable<MembershipDataValues> GetNoEmptyCsvNewValueMembershipDataValues()
+        {
+            var returnList = new List<MembershipDataValues>();
+            foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
+            {
+                var membershipValues = (MembershipDataValues)membershipProperty.GetValue(this);
+
+                if (!string.IsNullOrEmpty(membershipValues.CsvNewValue))
+                {
+                    returnList.Add(membershipValues);
+                }
+            }
+            return returnList;
+        }
+
         /// <summary>
         /// Return CSV New Value for desired matching Column Index
         /// </summary>
@@ -204,7 +226,7 @@ namespace Membership_Merge_Tool.Models
         {
             var valueFoundForColumnIndex = false;
             csvNewValue = string.Empty;
-            foreach (var membershipProperty in this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var membershipProperty in GetAllMembershipDataValuesProperties())
             {
                 var membershipValue = (MembershipDataValues)membershipProperty.GetValue(this);
                 if (membershipValue.ExcelFileColumnIndex.Equals(desiredColumnIndex, StringComparison.InvariantCultureIgnoreCase))
@@ -214,6 +236,13 @@ namespace Membership_Merge_Tool.Models
                 }
             }
             return valueFoundForColumnIndex;
+        }
+        
+        private IEnumerable<PropertyInfo> GetAllMembershipDataValuesProperties(MembershipData membershipData = null)
+        {
+            membershipData = membershipData == null ? this : membershipData;
+            return membershipData.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.PropertyType == typeof(MembershipDataValues));
         }
 
         private void InitializeMembershipData()

@@ -23,9 +23,6 @@ namespace Membership_Merge_Tool
 
                 // Move input files into Completed folder
                 MoveInputFilesIntoCompletedFolder(configData);
-
-                // Report result back
-
             }
             catch (Exception ex)
             {
@@ -60,9 +57,18 @@ namespace Membership_Merge_Tool
             if (inputDataRowList.Any())
             {
                 Console.Write($"Updating Excel Master File '{masterFile}' ... ");
-                var updatedRows = ExcelFileHelper.MergeInputDataIntoExcelFile(masterFile, inputDataRowList);
+                var updatedRows = ExcelFileHelper.UpdateInputDataIntoExcelFile(masterFile, inputDataRowList);
                 Console.Write($"Done{Environment.NewLine}");
                 Console.WriteLine($"Updated {updatedRows} rows");
+
+                // Check if there are any non-updated new rows that needs to be added
+                if (inputDataRowList.Any(p => p.ExistsInExcelFile == false))
+                {
+                    Console.Write($"Adding new records into Excel Master File '{masterFile}' ... ");
+                    var addedRows = ExcelFileHelper.AddInputDataIntoExcelFile(masterFile, inputDataRowList);
+                    Console.Write($"Done{Environment.NewLine}");
+                    Console.WriteLine($"Added {addedRows} rows");
+                }
             }            
         }
 
