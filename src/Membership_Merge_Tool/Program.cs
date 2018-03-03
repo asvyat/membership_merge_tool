@@ -94,7 +94,7 @@ namespace Membership_Merge_Tool
                 }                
             }
             Console.Write($"Done{Environment.NewLine}");
-            Console.WriteLine($"Found {returnList.Count} new records");
+            Console.WriteLine($"Found {returnList.Count} new records in CSV input files");
 
             return returnList;
         }

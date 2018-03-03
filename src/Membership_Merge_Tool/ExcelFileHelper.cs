@@ -27,12 +27,8 @@ namespace Membership_Merge_Tool
 
                 var firstSheetId = workSheets.First().Id;
                 var firstSheetPart = (WorksheetPart)document.WorkbookPart.GetPartById(firstSheetId);
-                //var firstWorksheet = firstSheetPart.Worksheet;
-                //var isHeader = true;
-                //uint headerRowIndex = 0;
 
-                //worksheet.Rows.EntireRow.Insert(DocumentFormat.OpenXml.Office.Excel.XlInsertShiftDirection.xlShiftDown, false);
-
+                var anyCellAdded = false;
                 foreach (var membershipData in inputDataList.Where(m => m.ExistsInExcelFile == false))
                 {
                     SheetData sheetData = firstSheetPart.Worksheet.GetFirstChild<SheetData>();
@@ -43,15 +39,16 @@ namespace Membership_Merge_Tool
                     {
                         var newCell = InsertCellInWorksheet(membershipDataValues.ExcelFileColumnIndex, newRow.RowIndex, firstSheetPart);
                         newCell.CellValue = new CellValue(membershipDataValues.CsvNewValue);
-                        newCell.DataType = new EnumValue<CellValues>(CellValues.SharedString);
-                        addedRows++;
+                        newCell.DataType = new EnumValue<CellValues>(CellValues.String);
+                        anyCellAdded = true;
                     }
 
-                    if (addedRows > 0)
+                    if (anyCellAdded)
                     {
                         // Save the worksheet.
                         firstSheetPart.Worksheet.Save();
                         document.Save();
+                        addedRows++;
                     }
                 }
                 return addedRows;
@@ -229,7 +226,7 @@ namespace Membership_Merge_Tool
                 {
                     var newCellValue = new CellValue(newValueFromCsv);
                     cell.CellValue = newCellValue;
-                    cell.DataType = new EnumValue<CellValues>(CellValues.SharedString);
+                    cell.DataType = new EnumValue<CellValues>(CellValues.String);
                     updated = true;
                 }
             }
