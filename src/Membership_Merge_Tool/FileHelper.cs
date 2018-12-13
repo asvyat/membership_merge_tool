@@ -4,7 +4,7 @@ using System.IO;
 namespace Membership_Merge_Tool
 {
     public class FileHelper
-    {
+    { 
         /// <summary>
         /// Count number of lines in provided local file
         /// </summary>        

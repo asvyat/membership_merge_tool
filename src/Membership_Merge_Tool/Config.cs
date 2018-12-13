@@ -6,7 +6,28 @@ using System.Configuration;
 namespace Membership_Merge_Tool
 {
     public class Config
-    {
+    {        
+        public string FolderPath_Completed {
+            get
+            {
+                return $"{GetValue(ConfigVariableName.RootFolder)}\\{GetValue(ConfigVariableName.FolderName_Completed)}";                
+            }
+        }
+        public string FolderPath_Updates
+        {
+            get
+            {
+                return $"{GetValue(ConfigVariableName.RootFolder)}\\{GetValue(ConfigVariableName.FolderName_Updates)}";
+            }
+        }
+        public string FilePath_MasterExcelFile
+        {
+            get
+            {
+                return $"{GetValue(ConfigVariableName.RootFolder)}\\{GetValue(ConfigVariableName.MasterExcelFileName)}";
+            }
+        }
+
         public Dictionary<ConfigVariableName, string> ConfigEntries { get; set; }
 
         public Config()
@@ -31,11 +52,6 @@ namespace Membership_Merge_Tool
         public string GetValue(ConfigVariableName configVariableName)
         {
             return ConfigEntries[configVariableName];
-        }
-
-        public string GetFolderPath(ConfigVariableName configVariableName)
-        {
-            return $"{GetValue(ConfigVariableName.RootFolder)}\\{configVariableName}";
         }
     }
 }
